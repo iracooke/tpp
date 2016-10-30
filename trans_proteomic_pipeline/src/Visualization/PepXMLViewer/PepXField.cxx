@@ -2409,7 +2409,7 @@ Field::getPTMProbsPlot(XMLNodePtr ptm_node, int pepsize) {
   char t[255]; // temp buffer for formatting
   string ptmjstext = "<span style='border-bottom:1px solid #777;'>";
 
-  string ptm_arr [pepsize];
+  string ptm_arr [10000];
   for (int c=0; c<pepsize; c++) {
     ptm_arr[c] = "&nbsp;";
   }
@@ -2449,7 +2449,7 @@ Field::getModPeptide(XMLNodePtr mods_node, string pep) {
   char t[255]; // temp buffer for formatting
   string modpeptext = "";
 
-  string mod_arr [pep.size()];
+  string mod_arr [10000];
   for (int c=0; c<pep.size(); c++) {
     mod_arr[c] = pep[c];
   }
