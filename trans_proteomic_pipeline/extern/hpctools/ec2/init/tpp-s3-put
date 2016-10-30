@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# tpp-s3-put	Runs a sync of TPP's tppdata to Amazon's S3
+#
+### BEGIN INIT INFO
+# Provides:          tpp-s3-put
+# Required-Start:    $remote_fs $network $syslog
+# Required-Stop:     $remote_fs $network $syslog
+# Default-Start:
+# Default-Stop:      0 1
+# Short-Description: Copy tppdata to Amazon S3
+# Description:       Puts the contents of the tppdata/s3 folder
+#                    into Amazon's S3.
+### END INIT INFO
+
+S3DIR=/mnt/tppdata/s3
+S3CFG=/opt/tpp/users/.s3cfg
+S3USR=/opt/tpp/users
+S3LOG=$S3DIR/tpp-s3-put.log
+
+# Start/stop are the same
+case "$1" in
+ start|stop)
+	S3URL=`grep tpp_s3url $S3CFG | perl -p -e's/.*=\s+//'`
+	if [ "$S3URL" = "" ]; then
+	   echo "Unable to find TPP S3 URL in s3cfg file" | tee -a $S3LOG
+	   exit 1
+	fi
+
+        cd $S3DIR
+        S3OPTS="-v -c $S3CFG -r --delete-removed"
+        s3cmd $S3OPTS --exclude $(basename $S3LOG) \
+		sync . $S3URL/tppdata/ 2>&1 | tee -a $S3LOG
+
+	cd $S3USR
+        s3cmd $S3OPTS --exclude $(basename $S3CFG) \
+		--exclude .awssecret \
+		--exclude .s3cfg \
+		sync . $S3URL/tppusers/ 2>&1 | tee -a $S3LOG
+
+        cd $S3DIR
+        s3cmd -v -c $S3CFG put $S3LOG $S3URL/tppdata/
+	;;
+ *)
+	echo $"Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0

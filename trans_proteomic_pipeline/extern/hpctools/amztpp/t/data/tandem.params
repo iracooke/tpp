@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><bioml>
+
+ <note type="input" label="list path, default parameters">default_input.xml</note>
+ <note type="input" label="list path, taxonomy information">taxonomy.xml</note>
+
+ <note type="input" label="user, name">sbeams</note>
+ <note type="input" label="scoring, algorithm">k-score</note>
+ <note type="input" label="spectrum, use conditioning">no</note>
+ <note type="input" label="spectrum, threads">2</note>
+ <note type="input" label="scoring, minimum ion count">1</note>
+
+ <note type="input" label="spectrum, path">full_mzXML_filepath</note>
+ <note type="input" label="output, path">full_tandem_output_path</note>
+ <note type="input" label="output, sequence path">full_tandem_output_sequence_path</note>
+
+ <note type="input" label="output, email">nobody@systemsbiology.org</note>
+ <note type="input" label="protein, taxon">testtaxon</note>
+ <note type="input" label="spectrum, parent monoisotopic mass error minus">2.0</note>
+ <note type="input" label="spectrum, parent monoisotopic mass error plus">4.0</note>
+ <note type="input" label="spectrum, fragment mass type">average</note>
+
+ <note type="input" label="residue, modification mass"></note>
+ <note type="input" label="residue, potential modification mass">15.994915@M</note>
+ <note type="input" label="refine, potential modification mass">15.994915@M</note>
+
+ <note type="input" label="refine">yes</note>
+ <note type="input" label="refine, cleavage semi">yes</note>
+ <note type="input" label="refine, unanticipated cleavage">no</note>
+ <note type="input" label="refine, potential N-terminus modification"></note>
+
+ <note type="input" label="protein, N-terminal residue modification mass"></note>
+ <note type="input" label="protein, C-terminal residue modification mass"></note>
+
+</bioml>

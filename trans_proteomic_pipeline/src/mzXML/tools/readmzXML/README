@@ -1,0 +1,31 @@
+readmzXML
+
+Uses RAMP to access information in an mzXML or mzData instance document.
+Prints to stdout:
+- msLevel
+- numPeaks
+- scanTime
+- lowMz
+- highMz
+- list of m/z - intensities
+for any scan selected by the user, or listed on the command line.
+
+> USAGE:
+
+  ./readmzXML somefile.mzXML [scan# [scan# [ ...]]]
+or
+  ./readmzXML somefile.mzData [scan# [scan# [...]]]
+
+  scan number arguments are optional - operation is interactive without them.
+
+> COMPILATION
+
+Type make
+
+> DEPENDENCY
+
+RAMP parser (in trans_proteomic_pipeline/src:)
+../../../Parsers/ramp
+
+Also requires the standard ZLIB library.
+

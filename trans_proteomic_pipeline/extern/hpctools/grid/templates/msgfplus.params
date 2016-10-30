@@ -1,0 +1,226 @@
+#
+# NAME
+#
+# Generic Template for MS-GF+ parameter files
+#
+# DESCRIPTION
+#
+# This is a parameters file for the qmsgfplus command used to run MS-GF+
+# MS/MS peptide spectra searches  on a cluster.  The format of the file is 
+# very simple. Each parameter is specified on a single line using the same
+# unix argument style used by the actual MS-GF+ program.  Any text following
+# the hash symbol('#') to the end of the line is ignored, allowing for 
+# comments to be included in the file.
+#
+# For convenience all of the allowable parameters have already been 
+# provided in this file along with a short description for each. To use
+# a parameter simply uncomment the line the parameter is on. 
+# for string values.
+#
+
+#-- PARAMETERS ----------------------------------------------------------------
+
+# 
+#-s <SpectrumFile>
+#
+# Spectrum file name. Currently supports the following file formats: mzML,
+# mzXML, mzML, mgf, ms2, pkl and _dta.txt.
+# (Normally required but not needed if using qmsgplus)
+
+#
+#-d <DatabaseFile (*.fasta or *.fa)>
+# (Required)
+#
+# Path to the protein database file. If the database file does not have 
+# auxiliary index files (*.canno, *.cnlcp, *.csarr, and *.cseq), MS-GFPLUS
+# will create them.
+#    * When "-tda 1" option is used, the database must contain only target
+#      protein sequences.
+#    * If multiple MS-GF+ processes access the same database file, it is
+#      strongly recommended to index the database prior to the database search
+#      by running BuildSA (see below).
+
+#
+#-t <ParentMassTolerance>
+# (Defaults to 20ppm)
+#
+# Parent mass tolerance in Da. or ppm. There must be no space between the 
+# number and the unit. E.g. 2.5Da, 30ppm
+# 
+# To set asymmetric tolerances, use comma to separate left (experimental 
+# mass < theoretical mass) or right (experimental mass > theoretical mass) 
+# tolerances. E.g. 0.5Da, 2.5Da.
+
+#
+#-o <OutputFile>
+#
+# Filename where the output will be written. The output will be printed to
+# standard out by default.
+
+#
+#-thread <NumOfThreads>
+#
+# Number of concurrent threads to be executed together. Default value is 
+# the number of available logical cores (e.g. 8 for quad-core processor with 
+# hyper-threading support).
+
+#
+#-tda 1
+#
+# Indicates whether to search the decoy database or not.
+#    * If 0, the decoy database is not searched and FDRs are theoretically
+#      derived from P-values (EFDR).  
+#    * If 1, FDRs are computed based on the target-decoy approach (i.e. 
+#      reversed database is appended to the target database and MS-GF+ 
+#      searches the combined database)
+#         FDR(t) = #(DecoyPSMs with score >= t) / #(TargetPSMs with >= t)
+#         PSM: Peptide-Spectrum Match
+#         -log(SpecProb) is used as the score to compute FDR.
+#
+# Note: If -tda 1 is specified, MS-GF+ automatically creates a combined
+# target/reversed database file (DBFileName.revConcat.fasta). Thus, when
+# specifying "-d" parameter, DatabaseFile must contain only target proteins.
+
+#
+# -m <FragmentationMethodID>
+# (0: as written in the spectrum or CID if no info (Default), 1: CID, 2: ETD, 
+#  3: HCD, 4: Merge spectra from the same precursor)
+#
+# Fragmentation method identifier (used to determine the scoring model).
+#
+#    * If the identifier is 0 and fragmentation method is written in the 
+#      spectrum file (e.g. activationMethod field in mzXML files), MS-GF+ will
+#      recognize the fragmentation method and use a relevant scoring model.
+#    * If the identifier is 0 and there is no fragmentation method information
+#      in the spectrum (e.g. mgf files), CID model will be used by default.
+#    * If the identifier is non-zero and the spectrum has fragmentation method
+#      information, only the spectra that match with the identifier will be 
+#      processed.
+#    * If the identifier is non-zero and the spectrum has no fragmentation
+#       method information, MS-GF+ will process all spectra assuming the
+#       specified fragmentation method.
+#    * If the identifier is 4, MS/MS spectra from the same precursor ion 
+#      (e.g. CID/ETD pairs, CID/HCD/ETD triplets) will be merged and the 
+#      "merged" spectrum will be used for searching instead of individual
+#      spectra. See Kim et al., MCP 2010 for details.
+#
+
+#
+# -inst InstrumentID 
+# (0: Low-res LCQ/LTQ (Default for CID and ETD), 1: TOF, 
+#  2: High-res LTQ (Default for HCD))
+#
+# Identifier of the instrument to generate MS/MS spectra (used to determine
+# the scoring model).
+#
+# * For "hybrid" spectra with high-precision MS1 and low-precision MS2, use 0.
+# * For usual low-precision instruments (e.g. Thermo LTQ), use 0.
+# * For TOF instruments, use 1.
+# * If MS/MS fragment ion peaks are of high-precision (e.g. tolerance = 10ppm),
+#   use 2.
+
+#
+# -e EnzymeID 
+# (Default: 1)
+#
+# Enzyme identifier. Trypsin (1) will be used by default.
+#    0: No enzyme, 1: Trypsin (default), 2: Chymotrypsin, 3: Lys-C, 4: Lys-N,
+#    5: Glu-C, 6: Arg-C, 7: Asp-N, 8: alphaLP, 9: Endogenous peptides
+
+#
+# -ti <MinIsotopeError,MaxIsotopeError>
+#
+# Istotope error range (replaces the -c13 option, see below). 
+
+# -c13 <x>
+# DEPRECIATED - replaced with the -ti option
+#
+# Instruments often choose 2nd or 3rd isotope peak instead of mono-isotope
+# peak from MS1 spectrum.
+#
+# If this value is non-zero, expPeptideMass-1.00335 (i.e. mass(13C)-mass(12C))
+# and expPeptideMass-2.00671 (i.e. 2*(mass(C13)-mass(C12)) (only if -c13 2)
+# will be considered along with expPeptideMass.
+#
+# If accurate precursor ion mass is available (e.g. LTQ-Orbitrap), it is better
+# to set a narrow parent mass tolerance and non-zero -c13 value (e.g. -t 30ppm
+# -c13 1) than to set a wide tolerance (e.g. -t 0.5Da,2.5Da).
+#
+# If the parent mass tolerance is equal to or larger than 0.5Da or 500ppm,
+# this parameter will be ignored.
+
+# -nnt <num>
+# Number of non-enzymatic termini. Replaces -nnet option below.
+
+# -nnet <num>
+# 0/1/2 (Number of allowed non-enzymatic termini, Default: 1)
+# DEPRECIATED - replaced with the -nnt option
+#
+# This parameter is used to determine the enzyme cleavage rule.  Specifies the
+# maximum number of peptide termini that are not cleaved by the enzyme.
+# For example, for trypsin, K.ACDEFGHR.C, G.ACDEFGHR.C, K.ACDEFGHI.C and
+# G.ACDEFGHR.C have 0, 1, 1 and 2 non-enzymatic termini, accordingly.
+# By default, -nnet 1 will be used. Using -nnet 0 (or 2) will make the search
+# significantly faster (slower).
+
+#
+# -mod <ModificationFile>
+# (Default: standard amino acids with fixed C+57)]
+#
+# Modification file name. ModificationFile contains the modifications to be
+# considered in the search.  If -mod option is not specified, standard amino
+# acids with fixed Carboamidomethylation C will be used. See an example
+# modification file .
+
+#
+# -minLength <MinPepLength>
+# (Default: 6)
+#
+# Minimum length of the peptide to be considered.
+
+#
+# -maxLength <MaxPepLength>
+# (Default: 40)
+#
+# Maximum length of the peptide to be considered.
+
+#
+# -minCharge <MinPrecursorCharge>
+# (Default: 2)
+#
+# Minimum precursor charge to consider. This parameter is used only for
+# spectra with no charge.
+
+# -maxCharge <MaxPrecursorCharge>
+# (Default: 3)
+#
+# Maximum precursor charge to consider. This parameter is used only for spectra
+# with no charge.
+
+#
+# -n <NumMatchesPerSpec>
+# (Default: 1)
+#
+# Number of peptide matches per spectrum to report.  Expected false discovery
+# rates (EFDRs) will be reported only when this value is 1.
+
+#
+# -addFeatures <boolean>
+# 0/1 (Default: ?)
+#
+# Using a value of 1 will output the following extra features for each PSM 
+# (will be useful to downstream tools like Percolator or IDPicker):
+#    * MS2IonCurrent: Summed intensity of all product ions
+#    * ExplainedIonCurrentRatio: Summed intensity of all matched product ions
+#      (e.g. b, b-H2O, y, etc.) divided by MS2IonCurrent
+#    * NTermIonCurrentRatio: Summed intensity of all matched prefix ions 
+#      (e.g. b, b-H2O, etc.) divided by MS2IonCurrent
+#    * CTermIonCurrentRatio: Summed intensity of all matched suffix ions
+#      (e.g. y, y-H2O, etc.) divided by MS2IonCurrent
+
+#
+# -showQValue <boolean>
+# 0/1 (Default: ?)
+
+# -showDecoy <boolean>
+# 0/1 (Default: ?)

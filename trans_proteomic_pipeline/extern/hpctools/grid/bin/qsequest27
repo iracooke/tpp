@@ -1,0 +1,111 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2010 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default queue to submit jobs to
+   QQUEUE=${QQUEUE:-}
+   
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+
+   # 1. Use 8 threads on 1 host using a PE with $pe_hosts set
+   # 2. Requests a complex resource named "sequest" in order to
+   #    prevent more than one sequest job on a host. Each host should
+   #    have this resource assigned
+   #    NOTE: it will request 1 times the # of PE slots (or 8)
+   QSUBFLAGS="${QSUBFLAGS:--pe pvm 8 -l sequest27=1 ${QSUBFLAGS}}"
+   
+   # Programs
+   MzXML2Search=${MzXML2Search-`which MzXML2Search 2>/dev/null`}
+   SEQUEST=${SEQUEST-`which sequest27pvm 2>/dev/null`}
+   OUT2XML=${OUT2XML-`which Out2XML 2>/dev/null`}
+
+# -----------------------------------------------------------------------------
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=sequest
+   
+   params="$(rel2abs $P_OPT)"
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml $odir$root.tgz
+   
+   cmds=$(cat <<EOF
+   
+# Write out a directory of DTA files for the input
+${MzXML2Search} -dta $file
+chmod g+w $idir$root
+cp -vf '$params' '$idir$root'
+
+# Run the pvm version of sequest 
+echo "Starting sequest"
+ls $idir$root/*.dta | xargs ${SEQUEST} -P${params}
+
+# Check that all dta files where processed
+DTA_CNT=\$(ls $idir$root/*.dta | wc -l)
+OUT_CNT=\$(ls $idir$root/*.out | wc -l)
+if [[ \$DTA_CNT != \$OUT_CNT ]]; then
+   echo "Error: sequest did not process all of the dta files"
+   exit -1
+fi
+
+# Convert top hit output to pep.xml 
+${OUT2XML} $idir$root 1 -P$params
+[ "$odir" ] && [ "$idir" != "$odir" ] && mv $idir$root.pep.xml $odir$root.pep.xml
+
+# Get rid of working directory
+cd $idir
+tar czf $root.tgz $root
+rm -rf $idir$root
+mv $root.tgz $odir
+
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "Q" grid functions
+
+# Check for necessary programs
+[ -x "${SEQUEST}" ]      || die "Error no sequest in your path"
+[ -x "${MzXML2Search}" ] || die "Error no MzXML2Search in your path"
+[ -x "${OUT2XML}" ]      || die "Error no Out2XML in your path"
+search_options sequest.params "*.mzML|*.mzXML" $*
+submit_jobs

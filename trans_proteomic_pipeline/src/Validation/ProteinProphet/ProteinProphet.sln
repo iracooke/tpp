@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProteinProphet", "ProteinProphet.vcproj", "{31D7F8DD-5653-4467-AF91-8889651FCB6F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A} = {25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tpplib", "..\..\tpplib\tpplib.vcproj", "{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		BoundsChecker|Win32 = BoundsChecker|Win32
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.BoundsChecker|Win32.ActiveCfg = BoundsChecker|Win32
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.BoundsChecker|Win32.Build.0 = BoundsChecker|Win32
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.Debug|Win32.Build.0 = Debug|Win32
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.Release|Win32.ActiveCfg = Release|Win32
+		{31D7F8DD-5653-4467-AF91-8889651FCB6F}.Release|Win32.Build.0 = Release|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.BoundsChecker|Win32.ActiveCfg = BoundsChecker|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.BoundsChecker|Win32.Build.0 = BoundsChecker|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.Debug|Win32.Build.0 = Debug|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.Release|Win32.ActiveCfg = Release|Win32
+		{25AD90B8-7FDC-40FB-B8BB-51F76AC9F49A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,262 @@
+
+/* from Pep3D embedded stylesheet, by Luis Mendoza */
+.hideit {display:none}
+.showit {display:table-row}
+.accepted {background: #dddddd;}
+.rejected {background: #b5b5b5;}
+
+body {font: small sans-serif; font-size: 12px; background-color: #C0C0C0;}
+
+h1  {
+      font-family: Helvetica, Arial, Verdana, sans-serif; 
+      font-size: 24pt; 
+      font-weight:bold; 
+      color:green;
+      margin-top: 0px;
+      padding-top: 0px;
+      }
+h2  {font-family: Helvetica, Arial, sans-serif; font-size: 20pt; font-weight: bold; color:green}
+h3  {font-family: Helvetica, Arial, sans-serif; font-size: 16pt; color:#FF8700}
+h4  {font-family: Helvetica, Arial, sans-serif; font-size: 14pt; color:green}
+h5  {font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color:#AA2222}
+h6  {font-family: Helvetica, Arial, sans-serif; font-size:  8pt; color:#333333}
+table   {border-collapse: collapse; border-color: #000000;}
+td      {border-collapse: collapse; border-color: #000000; font-size: 12px;}
+.banner_cid   {
+                background: green;
+                border: 2px solid green;
+                color: #eeeeee;
+                font-weight:bold;
+                }
+
+.banner_error   {
+                background: red;
+                border: 2px solid red;
+                color: #eeeeee;
+                font-weight:bold;
+                }
+
+.banner2      {
+                background: #aaaaaa;
+                color: black;
+                }
+.banner1      {
+                background: #FF8700;
+                color: black;
+                }
+.formentry    {
+                background: #eeeeee;
+                border: 2px solid green;
+                color: black;
+                padding: 1em;
+                }
+.formtabON { 
+             background: #66CC33;
+             border: 2px solid #66CC33;
+             color: #eeeeee;
+             font-weight:bold;
+ }
+.image        {
+                background: #ffffff;
+                border: 2px solid green;
+                color: black;
+                padding: 1em;
+                }
+.messages     {
+                background: #ffffff;
+                border: 2px solid #FF8700;
+                color: black;
+                padding: 1em;
+                }
+.nav          {
+                background: #c0c0c0;
+                font-family: Helvetica, Arial, Verdana, sans-serif;
+                font-weight:bold;
+                }
+.navselected  {
+                background: #dddddd;
+                }
+
+
+/* JMT */
+#TableDiv {
+            display: table-cell; 
+            border: 2px solid black;
+            margin: 0;
+            }
+
+
+
+/* used to highlight AAs */
+.highlight {
+             color: #FF0099;
+             }
+
+/* subscript */
+.sub {
+       font-size: smaller;
+       }
+
+
+.status td {
+             padding: 0 .5em 0 0;
+             }
+
+.data {
+        /* borders for the whole table */
+        table-layout: auto;
+        /*border: none;*/
+        background: #aaaaaa;
+        border-collapse: collapse;
+        border: 1px solid black;
+        
+        }
+
+.data tr {
+           border: 1px solid black;
+           
+           }
+
+.data td {
+           /* borders for the cells*/
+           border: 1px solid black;
+           height:100%;
+           /* */
+           padding: .25em .5em 0 .5em;
+           /* margin:  */
+           white-space: nowrap;
+
+           }
+
+
+.data td.prob { 
+                text-align: right;
+                }
+.data td.fval { 
+                text-align: right;
+                }
+.data td.xcorr { 
+                 text-align: right;
+                 }
+.data td.ntt { 
+               text-align: right;
+               }
+.data td.nmc { 
+               text-align: right;
+               }
+.data td.massdiff { 
+                    text-align: right;
+                    }
+
+.data td.sprank { 
+                  text-align: right;
+                  }
+
+.data td.deltacn { 
+                   text-align: right;
+                   }
+
+.data td.peptide { 
+                   text-align: right;
+                   font-family: monospace;
+                   }
+
+
+.data td.m_ions {
+                  text-align: right;
+                  font-family: monospace;
+                  }
+
+/* data: even rows */
+.data tr.even {
+                background: #DDE0FF;
+                }
+
+/* data: odd rows */
+.data tr.odd {
+               background: #FFFFFF;
+               
+               }
+
+.data td.center { 
+                   text-align: center;
+                   font-family: monospace;
+                   padding: 3 6 3 6;
+                   font-size: 10pt; 
+                }
+.data td.left { 
+                 text-align: left;
+                 font-family: monospace;
+                 padding: 3 6 3 6;
+                 font-size: 10pt; 
+              }
+
+#PageContainer {
+         margin: 0em; 
+         padding: 0em;
+         display: table-cell;
+         }
+
+
+
+
+
+#MenuBar { 
+   color: #4444FF;
+   margin: 0;
+   padding: 0;
+   /*max-width: 750px;*/
+}
+
+
+
+.menuButton { 
+   float: left; 
+   margin: .25em; 
+   padding: 0 .1em  0 .1em;
+   border-bottom: 0;
+}
+.menuButtonRight { 
+   float: right; 
+   margin: .25em; 
+   padding: 0 .1em  0 .1em;
+}
+
+
+
+
+
+
+/**********************************/
+/* Fading Tooltips By Dustin Diaz */
+body div#toolTip { 
+   position:absolute;
+   z-index:1000;
+   min-width:220px;
+   background:#000;
+   border:2px double #fff;
+   text-align:left;
+   padding:5px;
+   min-height:1em;
+   -moz-border-radius:5px;
+}
+
+body div#toolTip p { 
+   margin:0;
+   padding:0;
+   color:#fff;
+   font:11px/12px verdana,arial,sans-serif;
+}
+
+body div#toolTip p em {
+   display:block;
+   margin-top:3px;
+   color:#f60;
+   font-style:normal;
+   font-weight:bold;
+}
+
+body div#toolTip p em span {
+   font-weight:bold;
+   color:#fff;
+}

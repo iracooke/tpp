@@ -1,0 +1,39 @@
+#
+# PEPTIDELINK and PEPTIDEDESCRIPT describe the peptide link.
+# Generate a URL statement to accept the peptide sequence
+# appended to the end of the link specified in PEPTIDELINK.
+#
+#   For example:
+#   LINK1=http://some.server.com/cgi-bin/someprogram?database=NR&amp;sequence=
+#
+#   NOTE:  enter "&amp;" for single "&" characters in the URL (see example above)
+#
+# The URL must be all on one line.
+# The PEPTIDEDESCRIPT name will be listed as the reference to the peptide link
+#
+
+PEPTIDELINK=http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?CMD=Web&amp;LAYOUT=TwoWindows&amp;AUTO_FORMAT=Semiauto&amp;ALIGNMENTS=50&amp;ALIGNMENT_VIEW=Pairwise&amp;CDD_SEARCH=on&amp;CLIENT=web&amp;COMPOSITION_BASED_STATISTICS=on&amp;DATABASE=nr&amp;DESCRIPTIONS=100&amp;ENTREZ_QUERY=(none)&amp;EXPECT=1000&amp;FILTER=L&amp;FORMAT_OBJECT=Alignment&amp;FORMAT_TYPE=HTML&amp;I_THRESH=0.005&amp;MATRIX_NAME=BLOSUM62&amp;NCBI_GI=on&amp;PAGE=Proteins&amp;PROGRAM=blastp&amp;SERVICE=plain&amp;SET_DEFAULTS.x=41&amp;SET_DEFAULTS.y=5&amp;SHOW_OVERVIEW=on&amp;END_OF_HTTPGET=Yes&amp;SHOW_LINKOUT=yes&amp;QUERY=
+PEPTIDEDESCRIPT=NCBI Blast
+
+#
+# NUCLEOTIDELINK AND NUCLEOTIDEDESCR describe the nucleotide sequence link
+# for nucleotide database search results.
+#
+# This link is used by the SEQUEST CGI database-retrieval output files
+# The NUCLEOTIDEDECRIPT name will be listed as the reference to the nucleotide link
+#
+
+NUCLEOTIDELINK=http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?PROGRAM=tblastn&amp;DATABASE=nr&amp;EXPECT=1000&amp;ALIGNMENTS=50&amp;DESCRIPTIONS=20&amp;MATRIX_NAME=BLOSUM62&ampFILTER=L&amp;OVERVIEW=True&amp;QUERY=
+NUCLEOTIDEDESCRIPT=NCBI Blast
+
+#
+# PROTEINLINK and PROTEINDESCRIPT describe the protein reference/accession link.
+# Generate a URL statement that accepts the reference appended to the
+# end of the specified PROTEINLINK.
+#
+# This link is used by the SEQUEST CGI database-retrieval output files
+# The PROTEINDESCRIPT name will be listed as the reference to the protein link
+#
+
+PROTEINLINK=http://www.expasy.ch/cgi-bin/sprot-search-ful?
+PROTEINDESCRIPT=SWISS-PROT

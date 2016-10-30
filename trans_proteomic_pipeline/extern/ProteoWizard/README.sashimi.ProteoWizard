@@ -1,0 +1,92 @@
+Version control for ProteoWizard and sashimi
+
+Current Policy
+==============
+
+The current policy for obtaining ProteoWizard is to download the latest subset
+source tarball from their TeamCity site and merge it into the current TPP
+source tree.
+
+The steps are as follows:
+
+1) Checkout TPP from the subversion repository.  Go to:
+
+      trans_proteomic_pipeline/extern/Proteowizard 
+
+   and move aside the pwiz directory that's there and create a new pwiz directory. 
+   Unpack the subset source tarball into the new pwiz directory.  Remove any files
+   you don't want to include in our source tree (quickbuild.*, clean.* SUBSET,
+   and scripts).
+
+2) Identify and download the subset source tarball to use from: 
+
+   http://teamcity.labkey.org:8080/viewType.html?tab=buildTypeStatusDiv&buildTypeId=bt81
+
+   TIP: use the artifact pwiz-src-without-lt, where the suffix codes stand for
+        (l)ibraries and (t)ests and (v) vendor.  Note we do need the vendor
+        software.
+
+   You'll also need to download the full pwiz-src tarball and the VERSION file
+   as they'll be needed for step 3.
+
+   UPDATE: you can simply use download-pwiz.pl --src to grab the latest files.
+
+3) Next add Proteowizard's additional dependent libraries that aren't 
+   included in TPP.  To obtain these unpack the full pwiz source tarball in a
+   temporary location and copy them into the pwiz/libraries.  The current 
+   dependencies are:
+
+      cd trans_proteomic_pipeline/extern/Proteowizard/pwiz
+      cp -r $PWIZ_SRC/libraries/boost_aux .
+      cp -r $PWIZ_SRC/libraries/libsvm .
+
+   And at the same time copy the VERSION file into the pwiz directory.
+
+4) Now do a "force" checkout of pwiz over the new source to merge the new local
+   changes into the old version.
+
+   svn co svn+ssh://<user>@svn.code.sf.net/p/sashimi/code/trunk/trans_proteomic_pipeline/extern/ProteoWizard/pwiz pwiz --force
+
+5) Diff the contents of the new pwiz directory against the original one.  Manually
+use svn add/remove of files&directories the new pwiz directory as necessary.
+
+6) Review trans_proteomic_pipeline/src/Makefile.pwiz.incl and add/remove any
+   additional pwiz source code changes.
+
+
+And yes, we are no longer using any kind of svn external hooks to link to the
+ProteoWizard subversion repository but instead are using their build systems
+nightly artifacts.  Nor are we building/versioning using the Bjam or the GNU 
+autotools tar balls as these normally contain much more than we need in TPP and
+present significant and frequent compiling/linking problems.
+
+
+
+
+
+
+===============
+Outdated Policy
+===============
+
+ProteoWizard is obtained with a handful of svn:external hooks.  We don't do 
+it a single hook because the ProteoWizard tree is currently 
+ill-organized for getting just the source code, and we'd be grabbing 
+a bunch of binaries we don't want, which slows the build process 
+(especially in the cloud, where it's common to deal with a build 
+machine which has just spun up and doesn't have an svn cache).
+
+So, updating pwiz is a three step process:
+
+1) identify the branch and rev of pwiz that you want, and adjust the
+SVN properties of the extern/ProteoWizard/pwiz directory accordingly
+(as of this writing, set to
+svn:external pwiz -r 1132 https://proteowizard.svn.sourceforge.net/svnroot/proteowizard/trunk/pwiz/pwiz
+svn:external libraries/boost_aux -r 1132 https://proteowizard.svn.sourceforge.net/svnroot/proteowizard/trunk/pwiz/libraries/boost_aux
+)
+
+2) run svn update so the changes you made in step 1 take effect.
+
+3) make sure the pwiz makefile fragment in trans_proteomic_pipeline/src/Makefile.pwiz.incl 
+still makes sense (as in, did the pwiz source tree shift around?).  We're still not using the
+official bjam-based build system, it's just too brittle for now.

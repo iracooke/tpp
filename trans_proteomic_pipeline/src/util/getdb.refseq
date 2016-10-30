@@ -1,0 +1,41 @@
+#!/bin/csh
+
+#
+# get IPI human, mouse, rat  ----------
+#
+ftp -n <<DONE_WITH_FTP
+open ftp.ncbi.nih.gov
+user anonymous email@yourdomain.com
+bin
+prompt
+get /refseq/H_sapiens/mRNA_Prot/human.protein.faa.gz human.protein.faa.gz
+DONE_WITH_FTP
+
+#
+# uncompress downloaded file  ----------
+#
+rm -f human.protein.faa
+gunzip human.protein.faa
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(..\)|\([0-9]*\)|\(.*\)/>\2 \1|\2|\3/' < human.protein.faa > refseq.human
+rm -f human.protein.faa
+
+#
+# append date to filenames  ----------
+#
+set currdate=`date +%Y%m%d`
+
+rm -f refseq.human.$currdate
+
+mv refseq.human  refseq.human.$currdate
+
+
+#
+# append common contaminants & trypsin to databases  ----------
+#
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.other contam.yeast >> refseq.human.$currdate

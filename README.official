@@ -1,0 +1,60 @@
+Top-level Sashimi Project CVS info 
+*Last updated: Jul 13 2007*
+-------------------------
+Most current active development takes place in the
+trans_proteomic_pipeline repository.
+
+Please see our general documentation site,
+
+  http://tools.proteomecenter.org/wiki/ 
+
+and our google newsgroups
+
+  http://groups.google.com/group/spctools-discuss 
+  and
+  http://groups.google.com/group/spctools-announce
+
+for more information.
+-------------------------
+	  	  	 
+ProbID/
+  MS/MS Search engine
+
+SEQUEST_Params_Editor/
+
+cgi/
+  miscellaneous scripts and programs; use at own risk
+
+cygwin_installer/ 	  	  	  	 
+  custom setup.exe and repository building script for our custom
+  cygwin distribution system; NOTE, not up-to-date with our production
+  system.
+
+jrap/
+  java version of RAMP mzXML parser
+  
+misc/
+  miscellaneous scripts and programs; use at own risk
+
+qualscore/
+  analysis of high-quality but unassigned specta.
+
+tpp_gui/
+  web-based GUI interface to TPP tools, called petunia.  Please
+  see wiki for more information.
+
+trans_proteomic_pipeline/
+  Our protoemics analysis pipeline.  Almost all developer activity
+  takes place here.
+
+validateXML/
+  a simple XML validator.
+
+validateXML-java/
+  a simple XML validator.
+
+win_lib/
+  libraries for native MS build, contributed by LabKey and Insilicos
+
+retired/
+  outdated projects

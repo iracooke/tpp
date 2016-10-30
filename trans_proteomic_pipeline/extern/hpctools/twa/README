@@ -1,0 +1,31 @@
+INSTALLATION
+------------
+
+1. You will need to first download the latest ExtJs from Sencha to a scratch
+area.  After installation it can be removed as only the needed files are
+copied from the distribution.
+
+2. If you don't already have a web server installed, please first download
+and install Apache.
+
+3. Run: "make install DEST_DIR=<apachedie> EXTJS_DIR=<extsjs dir>" where
+<apachedir> is the location you want to install twa in and <extjs dir> is
+the location of ExtJs.
+
+4. Lastly you need to configure Apache to both recongize the installation and
+also to use mod_rewrite to pass thru the Amazon Web Services REST API calls.
+The directives should look something like:
+
+   # TPP Web Launcer for Amazon (TWA) settings
+   # The following rewrite rule is necessary to proxy aws EC2 requests
+   # to Amazon otherwise browsers run into cross site scripting errors.
+   # NOTE: this also has to be BEFORE the directory directive
+   RewriteEngine on
+   RewriteRule /twa/aws/(.*)$ https://ec2.$1.amazonaws.com [P]
+   SSLProxyEngine on
+
+   <Directory /var/www/proteomics/twa>
+    Options Includes Indexes FollowSymLinks MultiViews
+    Order allow,deny
+    Allow from all
+   </Directory>

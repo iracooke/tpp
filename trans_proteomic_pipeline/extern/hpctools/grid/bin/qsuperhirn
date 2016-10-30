@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+    
+   # Default qsub flags
+   QSUBFLAGS=${QSUBFLAGS:- -l h_rt=200:00:00 -l h_vmem=16106127359 }
+   
+   # Default superhirn flags
+   SUPERHIRN_FLAGS=${SUPERHIRN_FLAGS:-}
+
+   # Programs
+   SUPERHIRN=${SUPERHIRN-`which SuperHirn 2>/dev/null || echo ''`}
+
+# -----------------------------------------------------------------------------
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   # Remove previous results
+   rm -f $odir$root.$prog.qlog
+   
+   cmds=$(cat <<EOF
+$SUPERHIRN $SUPERHIRN_FLAGS 
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${SUPERHIRN}" ] || die "Error no SuperHirn in your path"
+
+# Split out qsub flags from superhrn flgs
+while [ "$1" ]; do
+   case "$1" in
+   --)
+      shift
+      QSUBFLAGS+=" $*"
+      break
+      ;;
+   *)
+      SUPERHIRN_FLAGS+=" $1"
+      shift
+      ;;
+   esac
+done
+
+odir=$PWD/
+idir=$odir
+root=`basename "$odir"`
+prog=superhirn
+setcmds; submit
+

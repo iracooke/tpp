@@ -1,0 +1,15 @@
+06/02/2006
+
+dtafilter1.c - simple ways to filter .dta files
+mzxml2dta1.c - uses RAMP to create .dta files from mzXML; requires ZLIB - edit ZLIBROOT in the Makefile
+runsearch1.c - our script to run a sequest search from an mzXML file
+subsetdb1.c - creates subset fasta files, reverse databases, etc
+plottic1.c - generates PNG images of TIC and BPC from an mzXML file; requires gnuplot
+checkdb1.c - simple fasta checker that looks for duplicate headers & extra long header/definition lines
+
+These are my little scripts to download protein sequence databases:
+getdb.ipi
+getdb.nci
+getdb.sgd
+getdb.swissprot
+

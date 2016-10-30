@@ -1,0 +1,214 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2010-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+   
+   # Default project for jobs in queue
+   QPROJECT=${QPROJECT:-}
+   
+   # Request mascot resource
+   QSUBFLAGS="-l mascot ${QSUBFLAGS}"
+
+   # Mascot server info
+   CURL=${CURL=$(which curl || true)}
+   MASCOT_URL=${MASCOT_URL:-http://kathie1/mascot}
+   DAT_URL=${MASCOT_URL}/cgi/qmascot_dat.pl
+
+   # Programs
+   MASCOT=/opt/mascot/cgi/nph-mascot.exe
+   MZXML2SEARCH=${MZXML2SEARCH=$(which MzXML2Search || true)}
+   MZXML2SEARCH_OPTS=${MZXML2SEARCH_OPTS:-}
+   MASCOT2XML=${MASCOT2XML=$(which Mascot2XML || true)}
+   
+# -----------------------------------------------------------------------------
+
+function setcmds() {
+   setcmds_http
+}
+
+#
+# Set commands to run in the qsub script. Uses a remote HTTP call to run.
+#
+# mascot needs a mgf file. So we need to convert it from a mz*ML file
+# Use what? msconvert or our older XML2search program. For now use the older
+# program as the output between the 2 programs are significantly different.
+# (BTW, msconvert renames the file, it doesn't just write a file out with a
+# different extension.)
+#
+#
+function setcmds_http() {
+   prog=mascot
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml                          
+   rm -f $odir$root.dat
+   rm -f $odir$root.html
+
+   cmds=$(cat <<EOF
+   
+$MZXML2SEARCH $MZXML2SEARCH_OPTS -mgf $file
+
+# Use sed and some clever manipulation to extract mascot parameters and add
+# them to the mgf file. (The problem here is there are two different sections
+# in the parameters file.  The header, and a ion section).
+P=$odir$root.mascot.params
+sed -e 's/\\r//;/^\s*#/d;/^\$/d; /BEGIN IONS/,/END IONS/d' $P_OPT > \$P
+sed -i "1r \$P" $idir$root.mgf
+sed -e 's/\\r//;/^\s*#/d;/^\$/d; 1,/BEGIN IONS/d;/END IONS/,\$d' $P_OPT > \$P
+#sed -i "/BEGIN IONS/r \$P" $idir$root.mgf
+rm \$P
+
+# Submit request
+$CURL -s \
+      -F "FILE=@$idir$root.mgf" \
+      -F "FORMVER=1.01" \
+      -F "SEARCH=MIS" \
+      -F "REPTYPE=peptide" \
+      -F "ErrTolRepeat=0" \
+      -F "INTERMEDIATE=" \
+      "${MASCOT_URL}/cgi/nph-mascot.exe?1"\ | dos2unix | tee $odir$root.html
+
+# Retrieve results  NOTE:  Mascot may timeout, returning a 200 OK response, 
+# but with no link to the results file
+[ ! -n "$DAT_URL" ] && exit 1
+DAT_FILE=\`perl -ne 'print \$1 if /<A HREF.*master_results.*\.pl\\\?file=(.*\\\.dat)/' \
+   $odir$root.html\`
+if [ ! -n "\$DAT_FILE" ]; then
+   echo "Error: no results file found in output of mascot"
+   exit 1
+fi
+echo "Fetching dat file '\$DAT_FILE'"
+$CURL -f -s "${DAT_URL}?dat=\${DAT_FILE}" > $odir$root.dat
+
+# Grab database and convert dat to pep.xml
+DB_FILEPATH=\`perl -ne '/fastafile=(.*)/ && print \$1' $odir$root.dat\`
+DB_FILE=\`basename \$DB_FILEPATH\`
+if [ ! -f "\$DB_FILE" ]; then
+   echo "Fetching DB file \$DB_FILE"
+   $CURL -f -s "${DAT_URL}?db=\${DB_FILEPATH}" > \$DB_FILE
+fi
+
+# mascot2xml needs input file next to dat file
+if [ ! -e "$input" ]; then
+   ln -s $file $input
+   REMOVE_LINK=1
+fi
+
+$MASCOT2XML $odir$root.dat -D \$DB_FILE $odir$root.pep.xml
+
+[ \$REMOVE_LINK ] && rm -f $input
+
+EOF
+)
+}
+
+#
+# Set commands to run in the qsub script.  This uses the local mascot program. 
+#
+# mascot needs a mgf file. So we need to convert it from a mz*ML file
+# Use what? msconvert or our older XML2search program. For now use the older
+# program as the output between the 2 programs are significantly different.
+# (BTW, msconvert renames the file, it doesn't just write a file out with a
+# different extension.)
+#
+#
+function setcmds_local() {
+   prog=mascot
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml
+   rm -f $odir$root.dat
+   rm -f $odir$root.html
+
+   cmds=$(cat <<EOF
+
+$MZXML2SEARCH $MZXML2SEARCH_OPTS -mgf $file
+
+# Use sed and some clever manipulation to extract mascot parameters and add
+# them to the mgf file. (The problem here is there are two different sections
+# in the parameters file.  The header, and a ion section).
+P=$odir$root.mascot.params
+sed -e 's/\\r//;/^\s*#/d;/^\$/d; /BEGIN IONS/,/END IONS/d' $P_OPT > \$P
+sed -i "1r \$P" $idir$root.mgf
+sed -e 's/\\r//;/^\s*#/d;/^\$/d; 1,/BEGIN IONS/d;/END IONS/,\$d' $P_OPT > \$P
+#sed -i "/BEGIN IONS/r \$P" $idir$root.mgf
+rm \$P
+
+# Submit request directly to the cgi script.  Have to be in the same directory
+# for license file to be found
+OUT=\$PWD
+pushd \$(dirname $MASCOT)
+perl <<EOP | sed '1,4 d' | $MASCOT 1 -commandline -f \$OUT/$root.dat
+use HTTP::Request::Common qw( POST );
+print POST( '/cgi/nph-mascot.exe?1',
+            Content_type => "multipart/form-data",
+            Content => [ FILE => ["$idir$root.mgf"],
+                         INTERMEDIATE => '',
+                         FORMVER => "1.01",
+                         SEARCH => "MIS",
+                         PEAK => "AUTO",
+                         REPTYPE => "peptide",
+                         ErrTolRepeat => 0,
+                       ] )->as_string();
+EOP
+rm -f \$OUT/$root.dat.flg
+popd
+
+# Convert output to pep.xml.  MASCOT2XML looks locally for the mz file
+# and doesn't have an option for specifying the location therefore make a
+# temporary link to it
+DB_FILE=\$(perl -ne '/fastafile=(.*)/ && print \$1' $odir$root.dat)
+if [ ! -e $odir$(basename $file) ]; then
+   ln -v -s $file $odir
+   RMLN=$odir$(basename $file)
+fi
+$MASCOT2XML $odir$root.dat -D\$DB_FILE $odir$root.pep.xml -notgz -nodta
+[ "\$RMLN" != "" ] && rm -f -v \$RMLN
+EOF
+)
+}
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${MZXML2SEARCH}" ] || die "Error no MzXML2Search in your path"
+[ -x "${MASCOT2XML}" ]   || die "Error no Mascot2XML in your path"
+
+search_options mascot.params "*.mzML|*.mzXML" $*
+P_OPT="$(rel2abs "$P_OPT")"
+
+submit_jobs
+exit 0

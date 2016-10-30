@@ -1,0 +1,10 @@
+#
+# build ant for MinGW
+#
+
+ANT_VER= apache-ant-1.7.1
+
+CWD=$(shell pwd)
+
+all:
+	@if [ ! -e $(ANT_VER)/bin/ant ]; then UnxUtils/usr/local/wbin/unzip $(ANT_VER).zip; fi;

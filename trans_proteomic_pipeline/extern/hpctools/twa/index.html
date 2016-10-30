@@ -1,0 +1,75 @@
+<!-- 
+-->
+<?access-control allow="aws.amazon.com"?>
+<html>
+<head>
+   <link rel="icon" href="./images/sm_tpp_logo.ico" type="image/ico">
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <title>TPP Web Launcher For Amazon Web Services (TWA)</title>
+
+   <script type="text/javascript">
+      // if console is not defined, e.g., Firebug console is not enabled or
+      // a non-Firefox browser requested page then create a stub object
+      if ( typeof console == 'undefined' ) 
+          {
+          var console = {};
+          console.log   = function() { return; };
+          console.debug = function() { return; };
+          console.info  = function() { return; };
+          console.warn  = function() { return; };
+          console.error = function() { return; };
+          }
+   </script>
+
+   <link rel="stylesheet" type="text/css" href="ext/resources/css/ext-all.css"/>
+
+   <script type="text/javascript" src="ext/ext-all.js"></script>
+<!--
+   <script type="text/javascript" src="ext/ext-all-debug.js"></script>
+-->   
+   <script type="text/javascript" src="Options.ui.js"></script>
+   <script type="text/javascript" src="MyViewport.ui.js"></script>
+   <script type="text/javascript" src="MyViewport.js"></script>
+   <script type="text/javascript" src="twa.js"></script>
+   <script type="text/javascript" src="AWS.js"></script>
+   <script type="text/javascript" src="hmacsha1.js"></script>
+   
+   <script type="text/javascript">
+      window.aws = new AWS;
+
+      function resize_iframe()
+      {
+         var height=window.innerWidth;//Firefox
+         if (document.body.clientHeight)
+         {
+            height=document.body.clientHeight;//IE
+         }
+         //resize the iframe according to the size of the
+         //window (all these should be on the same line)
+         document.getElementById("content").style.height=parseInt(height-
+         document.getElementById("content").offsetTop-0)+"px";
+         console.error( document.getElementById("content").style.height );
+      }
+
+      // Reload welcome page to insure browser isn't re-loading petunia
+      window.onload = function(e) { 
+         c = document.getElementById("content");
+         if ( c )
+            c.src = 'welcome.html';
+         }
+      window.onbeforeunload = function() { return "You work will be lost."; };
+   </script>
+
+   <style>
+      .twa-busy-icon { background:transparent url(images/twa-busy.gif) no-repeat; }
+      head, body { overflow-y: hidden }
+      iframe { display: block; overflow: scroll; border: none; width: 100%; height: 100% }
+   </style>
+
+</head>
+<body onload="resize_iframe()" onresize="resize_iframe()">
+ <iframe id="content" src="welcome.html">
+  <p>Your browser does not support iframes.</p>
+ </iframe>
+</body>
+</html>

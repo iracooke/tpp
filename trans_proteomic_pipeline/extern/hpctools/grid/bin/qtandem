@@ -1,0 +1,119 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+    
+   # Default project to submit jobs to
+   QPROJECT=${QPROJECT:-}
+   
+   # Maximum procs to use
+   MAX_PROCS=${MAX_PROCS:-8}
+
+   # Default qsub flags
+   QSUBFLAGS="-pe serial ${MAX_PROCS} ${QSUBFLAGS}"
+   
+   # Programs
+   TANDEM=${TANDEM-`which tandem || true`}
+   TANDEM2XML=${TANDEM2XML-`which Tandem2XML || true`}
+   
+# -----------------------------------------------------------------------------
+   
+#
+# Copy tandem.params file 
+#
+function copy_params () {
+   input=$1
+   src=$2
+   dst=$3
+   
+   # Before copying, check threads parameter
+   DEFS_REGEX='<note type="input"\s+label="list path,\s*default parameters">(.*?)</note>'
+   THDS_REGEX='<note type="input"\s+label="spectrum,\s*threads">(.*?)</note>'
+   DEFS=`perl -n -e "print \\$1 if m~${DEFS_REGEX}~im" $src`
+   THDS=`perl -n -e "next unless m~${THDS_REGEX}~im; print \\$1; exit" $src $DEFS`
+   if [ "${THDS}" != "${MAX_PROCS}" ]; then
+      die "Error the 'spectrum, threads' parameter is not set to ${MAX_PROCS} for this job"
+   fi
+
+   # Use brute force to copy the parameter file and replace tags
+   SPT_REGEX='(<note type="input"\s+label="spectrum,\s*path">).*?(</note>)'
+   OUT_REGEX='(<note type="input"\s+label="output,\s*path">).*?(</note>)'
+   SEQ_REGEX='(<note type="input"\s+label="output,\s*sequence path">).*?(</note>)'
+   
+   cp -f $src $dst
+   perl -pi -e "s~${SPT_REGEX}~\${1}$input\${2}~im" $dst
+   perl -pi -e "s~${OUT_REGEX}~\${1}$root.tandem\${2}~im" $dst
+   perl -pi -e "s~${OUT_REGEX}~\${1}$root.tandem\${2}~im" $dst
+   perl -pi -e "s~${SEQ_REGEX}~\${1}$root.output_sequences\${2}~im" $dst
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=tandem
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml
+   rm -f $odir$root.output_sequences
+   rm -f $odir$root.tandem
+   copy_params $file $P_OPT $odir$root.tandem.params
+   
+   cmds=$(cat <<EOF
+$TANDEM $odir$root.tandem.params 
+$TANDEM2XML $odir$root.tandem $odir$root.pep.xml 
+EOF
+)
+
+if [ "$V_OPT" != "" ]; then
+   cmds+=$'\n'"rm -f $odir$root.tandem"
+   cmds+=$'\n'"rm -f $odir$root.output_sequences"
+   cmds+=$'\n'"rm -f $odir$root.tandem.params"
+fi
+
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${TANDEM}" ]     || die "Error no tandem in your path"
+[ -x "${TANDEM2XML}" ] || die "Error no Tandem2XML in your path"
+
+search_options tandem.params '*.mzML|*.mzXML|*.mgf|*.mzML.gz|*.mzXML.gz' $*
+submit_jobs

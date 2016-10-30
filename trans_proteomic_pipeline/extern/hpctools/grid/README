@@ -1,0 +1,3 @@
+Provided here are a series of shell scripts that be used to submit search and
+TPP jobs to a Sun(Oracle) Grid Engine.  They are meant to be installed
+and then modified to suit you site's needs.

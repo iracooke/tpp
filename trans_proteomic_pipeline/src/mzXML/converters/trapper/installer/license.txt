@@ -1,0 +1,139 @@
+YOU MUST READ AND AGREE TO THE ENTIRE TEXT OF THE AGILENT MHDAC
+LICENSE, INCLUDED BELOW:
+
+==In plain English==
+
+This converter distribution contains ISB written code as well as the
+core Agilent libraries ("MHDAC", see below) necessary for stand-alone
+conversion of Agilent's MassHunter ".d" format into open XML-based
+formats.
+
+The Agilent MHDAC libraries are strictly the property of Agilent.
+Agilent is kindly allowing us to include these files in our
+distribution.  These files are closed source.  They may not be
+redistributed apart from this project.  If interested in obtaining the
+MHDAC for your own project, please contact Agilent directly.
+
+The MHDAC is used by the ISB's LGPL 2.1-licensed code.  The core ISB
+code is licensed in this way to require reciprocal contributions: in
+other words, you can look at the ISB source code and change it, but if
+you redistribute it yourself you must include the source code *and*
+any changes you make.
+
+In order to interface with the MHDAC code, the ISB code also contains
+Apache 2.0-licensed code.  This Apache-licensed code was created to
+legally separate the core ISB LGPL code and the closed Agilent code.
+The ISB wants to make clear that the ISB's LGPL licensed code *in no
+way* implies that the Agilent MHDAC fall under any sort of
+open-source and/or reciprocal burden, although it is used in the
+(mostly) LGPL project.
+
+--Natalie Tasman, Trapper Author (ISB/SPC)
+
+
+
+==AGILENT MASSHUNTER DATA ACCESS COMPONENT (MHDAC) USER LICENSE==
+
+Agilent grants to ISB under Agilent's intellectual property rights a
+royalty free, limited and terminable license to distribute solely to
+end users the Agilent proprietary MassHunter Data Access Component
+(herein "MHDAC") executable library without fee and concurrently with
+the ISB main and ISB MHDACWrapper software and other ISB code that is
+licensed under the Library General Public License v. 2.0 (LGPL
+v.2). The executable software for the Agilent MHDAC library are owned
+and licensed by Agilent under the standard Agilent software terms and
+conditions, which are listed in full below.  The Agilent software is
+owned and licensed by Agilent.  This license grant does not include
+any access or license to source code for the Agilent MHDAC software.
+Agilent further grants a license to ISB to implement the Agilent MHDAC
+headers in the ISB LGPL licensed code for the limited purpose of
+making appropriate use of the MHDAC type enumerations so that the ISB
+apache and LGPL licensed code is compatible with the Agilent MHDAC
+proprietary library. This limited license includes the right to have
+the Apache-licensed MHDACWrapper program return an object to the LGPL
+licensed library that contains MHDAC data types.
+
+
+
+==AGILENT TECHNOLOGIES, INC. SOFTWARE LICENSE TERMS==
+
+ATTENTION: USE OF THE SOFTWARE IS SUBJECT TO THE LICENSE TERMS SET
+FORTH BELOW.  IF YOU DO NOT AGREE TO THESE LICENSE TERMS, THEN (A) DO
+NOT INSTALL OR USE THE SOFTWARE, AND (B) YOU MAY RETURN THE SOFTWARE
+FOR A FULL REFUND, OR, IF THE SOFTWARE IS SUPPLIED AS PART OF ANOTHER
+PRODUCT, YOU MAY RETURN THE ENTIRE PRODUCT FOR A FULL
+REFUND. NOTWITHSTANDING ANYTHING TO THE CONTRARY IN THIS NOTICE,
+INSTALLING OR OTHERWISE USING THE SOFTWARE INDICATES YOUR ACCEPTANCE
+OF THESE TERMS.  AGILENT SOFTWARE LICENSE TERMS
+
+SOFTWARE. "Software" means one or more computer programs in object
+code format, whether stand-alone or bundled with other products, and
+related documentation.
+
+LICENSE GRANT. Agilent grants you a non-exclusive license to use one
+copy of the Software for internal purposes in accordance with these
+License Terms and the documentation provided with the Software. Such
+documentation may include license terms provided by Agilent's third
+party suppliers, which will apply to the use of the Software and take
+precedence over these License Terms. In the absence of documentation
+specifying the applicable license, you may use one copy of the
+Software on one machine or instrument. If the software is licensed for
+concurrent or network use, you may not allow more than the maximum
+number of authorized users to access and use the software
+concurrently.
+
+LICENSE RESTRICTIONS. You may make copies or adaptations of the
+Software only for archival purposes or only when copying or adaptation
+is an essential step in the authorized use of the Software. You must
+reproduce all copyright notices in the original Software on all
+permitted copies or adaptations. You may not copy the Software onto
+any public or distributed network.
+
+UPGRADES. This license does not entitle you to receive upgrades,
+updates or technical support. Such services may be purchased
+separately.
+
+OWNERSHIP. The Software and all copies thereof are owned and
+copyrighted by Agilent or its third party suppliers.  Agilent and its
+third party suppliers retain all right, title and interest in the
+Software. Agilent's third party suppliers may protect their rights in
+the Software in the event of any violation of these License Terms.
+
+NO DISASSEMBLY. You may not disassemble or otherwise modify the
+Software without written authorization from Agilent, except as
+permitted by law. Upon request, you will provide Agilent with
+reasonably detailed information regarding any permitted disassembly or
+modification.  High Risk Activities. The Software is not specifically
+designed, manufactured or intended for use in the planning,
+construction, maintenance or direct operation of a nuclear facility,
+nor for use in on line control or fail safe operation of aircraft
+navigation, control or communication systems, weapon systems or direct
+life support systems.
+
+TRANSFER. You may transfer the license granted to you here provided
+that you deliver all copies of the Software to the transferee along
+with these License Terms and pay any applicable fees to the extent
+permissible under local laws. The transferee must accept these License
+Terms as a condition to any transfer. Your license to use the Software
+will terminate upon transfer.
+
+TERMINATION. Agilent may terminate your license upon notice for breach
+of these License Terms. Upon termination, you must immediately destroy
+all copies of the Software.
+
+EXPORT REQUIREMENTS. If you export, re-export or import Software,
+technology or technical data licensed hereunder, you assume
+responsibility for complying with applicable laws and regulations and
+for obtaining required export and import authorizations. Agilent may
+terminate this license immediately if you are in violation of any
+applicable laws or regulations.
+
+U.S. GOVERNMENT RESTRICTED RIGHTS. Software and technical data rights
+granted to the federal government include only those rights
+customarily provided to end user customers. Agilent provides this
+customary commercial license in Software and technical data pursuant 
+to FAR 12.211 (Technical Data) and 12.212 (Computer Software) and, 
+for the Department of Defense, DFARS 252.227-7015 
+(Technical Data - Commercial Items) and DFARS 227.7202-3 
+(Rights in Commercial Computer Software or Computer Software 
+Documentation).

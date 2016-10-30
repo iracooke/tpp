@@ -1,0 +1,29 @@
+--- #YAML:1.0
+name:               TPPAWSSearch
+version:            0.01
+abstract:           Interface for running MS spectra searches on Amazon Web Services.
+author:
+    - Joseph Slagel <jslagel@systemsbiology.org>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Amazon::SQS::Simple:  1.04
+    Class::InsideOut:     1.09
+    File::Which:          1.07
+    Module::Load:         0.16
+    Net::Amazon::EC2:     0.09
+    Net::Amazon::S3:      0.52
+    Proc::Fork:           0.71
+    YAML:                 0.62
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.54
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

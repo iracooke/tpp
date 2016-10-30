@@ -1,0 +1,162 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2010 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+#
+# Run MS/MS searches followed by a TPP analysis
+#
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Pick a default search program to use
+for PARAMS in {tandem,omssa,inspect,sequest}.params; do
+   [ -f "$PARAMS" ] && break
+   PARAMS=
+done
+
+# Assigns PARAMS INPUTS and submit search jobs
+search_options $PARAMS '*.mzML|*.mzXML' $*
+case "${PARAMS%.params}" in
+   tandem)
+      echo "Queuing tandem searches:"
+      JOBS=`qtandem $INPUTS $QSUB_FLAGS`
+      ;;
+   omssa)
+      echo "Queuing omssa searches:"
+      JOBS=`qomssa $INPUTS $QSUB_FLAGS`
+      ;;
+   inspect)
+      echo "Qeuing inspect searches:"
+      JOBS=`qinspect $INPUTS $QSUB_FLAGS`
+      ;;
+   sequest)
+      echo "Submitting sequest searches:"
+      JOBS=`qsequest $INPUTS $QSUB_FLAGS`
+      ;;
+   *)
+      usage "Unrecognized parameter file ${PARAMS}"
+      ;;
+esac
+echo "$JOBS"
+echo 
+
+# Send email on tpp finishing
+#QEND='email_notify "TPP $QSTATUS in $PWD" "'$QMAIL\"
+
+# Add search job dependencies to QSUB flags list
+if [ -z "$SGE_ROOT" ]; then
+   JOBS=`echo -e $JOBS | perl -pe 's/ /:/gm;'`
+   QSUB_FLAGS="$QSUB_FLAGS -W depend=\"afterok:$JOBS\""
+else
+   JOBS=`echo -e $JOBS | perl -pe 's/ /,/gm;'`
+   QSUB_FLAGS="$QSUB_FLAGS -hold_jid $JOBS"
+fi
+
+# Queue up tpp
+echo "Queuing TPP analysis of search results:"
+PEPXML=${INPUTS//.mzXML/.pep.xml}
+PEPXML=${PEPXML//.mzML/.pep.xml}
+qtpp $PEPXML -- $QSUB_FLAGS
+
+exit 0
+
+
+# -- POD DOCUMENTATION ------------------------------------------------------
+#
+# Documentation.  Uses pod with a shell trick.  Simply run pod2man on this file
+# to get the documentation.
+#
+: <<POD
+
+=head1 NAME
+
+runtpp - submit a set of MS/MS search jobs followed by a TPP analysis
+
+=head1 SYNOPSIS            
+
+runtpp [options] *.mzXML|*.mzML
+
+ Options:
+   -h, --help          print this help
+   
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+This wrapper script combines an execution of one of the queue search
+commands (qtandem, qomssa, ..) with a TPP analysis (qtpp).  The analysis
+will wait till all of the search jobs are finished before running.
+
+=head1 OUTPUT
+
+The program outputs the batch job id of the search and analysis jobs.
+
+=head1 EXAMPLE 
+
+The following command submits a search to be run on each mzXML to be then
+be followed with a TPP analysis:
+
+=over 5
+
+S<runtpp *.mzXML>
+
+=back
+
+=head1 SEE ALSO
+
+=over 5
+
+=item qtandem - submit one or more tandem search jobs
+
+=item qomssa - submit one or more omssa search jobs
+
+=item qinspect - submit one or more inspect search jobs
+
+=item qmyrimatch - submit one or more myrimatch search jobs
+
+=item qtpp - submit a TPP analysis 
+
+=item qsub, OpenPBS L<http://www.openpbs.org>, 
+
+=item Sun Grid Engine L<http://gridengine.sunsource.net>
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut

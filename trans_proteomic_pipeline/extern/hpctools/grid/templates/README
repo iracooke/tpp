@@ -1,0 +1,16 @@
+				     README
+
+This directory contains template files for the various different search
+programs supported by TPP.  To use these templates simply copy the
+appropriate file for the search engine you would like to use into the
+directory where you will be performing the search. 
+
+Template files in this directory should all have filenames beginning with
+the name of the search program and ended with the extension ".params".  For
+example the generic template file for X!Tandem is tandem.params.  Templates
+for common types of projects, such as N15 modified experiments should be
+identified with an additional "-" type included in the name, such as
+"tandem-N15.params".
+
+Lastly, all templates should also contain the orignal name of the template
+along with a short description describing their purpose.

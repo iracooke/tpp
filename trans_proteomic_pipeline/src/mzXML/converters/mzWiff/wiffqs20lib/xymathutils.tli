@@ -1,0 +1,329 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.00.50727.42 (e4fc9c52).
+//
+// c:\sashimi\trunk\trans_proteomic_pipeline\src\mzxml\converters\mzwiff\wiffqs20lib\xymathutils.tli
+//
+// Wrapper implementations for Win32 type library ..\\libs\\analystqs-2.0\\XYMathUtils.dll
+// compiler-generated file created 02/19/09 at 14:06:13 - DO NOT EDIT!
+
+#pragma once
+
+//
+// interface IXYMathUtilsVersionObject wrapper method implementations
+//
+
+inline double IXYMathUtilsVersionObject::GetLibraryVersion ( ) {
+    double _result = 0;
+    HRESULT _hr = raw_GetLibraryVersion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface IGeneralXYMathUtils wrapper method implementations
+//
+
+inline HRESULT IGeneralXYMathUtils::AdjustXValues ( IUnknown * xyData, double multFactor, double addFactor, long startIndex, long endIndex ) {
+    HRESULT _hr = raw_AdjustXValues(xyData, multFactor, addFactor, startIndex, endIndex);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::AdjustYValues ( IUnknown * xyData, double multFactor, double addFactor, long startIndex, long endIndex ) {
+    HRESULT _hr = raw_AdjustYValues(xyData, multFactor, addFactor, startIndex, endIndex);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::AddMissingZeros ( IUnknown * xyData, double startX, double endX, double stepX ) {
+    HRESULT _hr = raw_AddMissingZeros(xyData, startX, endX, stepX);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::AddMissingZerosTOF ( IUnknown * xyData, double startMass, double endMass, double calA, double cal2, double stepTime ) {
+    HRESULT _hr = raw_AddMissingZerosTOF(xyData, startMass, endMass, calA, cal2, stepTime);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::MakeEquallySpaced ( IUnknown * xyData ) {
+    HRESULT _hr = raw_MakeEquallySpaced(xyData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::Normalise ( IUnknown * xyData, double normaliseTo ) {
+    HRESULT _hr = raw_Normalise(xyData, normaliseTo);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::ReplaceWithOnes ( IUnknown * xyData, double threshold ) {
+    HRESULT _hr = raw_ReplaceWithOnes(xyData, threshold);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::PowerWeightIntensities ( IUnknown * xyData, double power ) {
+    HRESULT _hr = raw_PowerWeightIntensities(xyData, power);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::Correlate ( IUnknown * xyData1, IUnknown * xyData2, IUnknown * xyDataCorrelated ) {
+    HRESULT _hr = raw_Correlate(xyData1, xyData2, xyDataCorrelated);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::ExtractRange ( IUnknown * xyData, long startIndex, long endIndex, IUnknown * extractedData ) {
+    HRESULT _hr = raw_ExtractRange(xyData, startIndex, endIndex, extractedData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::Pad ( IUnknown * xyData, double padValue, long numToAdd ) {
+    HRESULT _hr = raw_Pad(xyData, padValue, numToAdd);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::Multiply ( IUnknown * xyData1, IUnknown * xyData2, IUnknown * xyDataMultiplied ) {
+    HRESULT _hr = raw_Multiply(xyData1, xyData2, xyDataMultiplied);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::Divide ( IUnknown * xyData1, IUnknown * xyData2, double valueIfDiv0, IUnknown * xyDataDivided ) {
+    HRESULT _hr = raw_Divide(xyData1, xyData2, valueIfDiv0, xyDataDivided);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::ThresholdData ( IUnknown * xyData, double threshold ) {
+    HRESULT _hr = raw_ThresholdData(xyData, threshold);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::WilmCorrelation ( IUnknown * xyData, double halfWindow, short numPasses, IUnknown * xyDataCorrelated ) {
+    HRESULT _hr = raw_WilmCorrelation(xyData, halfWindow, numPasses, xyDataCorrelated);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::SortXY ( IUnknown * xyData, long ascending ) {
+    HRESULT _hr = raw_SortXY(xyData, ascending);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IGeneralXYMathUtils::NaturalLogY ( IUnknown * xyData, double minY ) {
+    HRESULT _hr = raw_NaturalLogY(xyData, minY);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface ISimpleXYMathUtils wrapper method implementations
+//
+
+inline HRESULT ISimpleXYMathUtils::GetYStatistics ( IUnknown * xyData, double * sumY, double * sumY2, double * sumAbsY ) {
+    HRESULT _hr = raw_GetYStatistics(xyData, sumY, sumY2, sumAbsY);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface IFFTXYMathUtils wrapper method implementations
+//
+
+inline HRESULT IFFTXYMathUtils::ForwardFFT ( IUnknown * xyData, IUnknown * fftData ) {
+    HRESULT _hr = raw_ForwardFFT(xyData, fftData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IFFTXYMathUtils::ReverseFFT ( IUnknown * fftData, enum PartOfFFTType fftType, VARIANT_BOOL doFlip, IUnknown * xyData ) {
+    HRESULT _hr = raw_ReverseFFT(fftData, fftType, doFlip, xyData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IFFTXYMathUtils::GetOnePartOfFFT ( IUnknown * fftData, enum PartOfFFTType fftType, IUnknown * xyData ) {
+    HRESULT _hr = raw_GetOnePartOfFFT(fftData, fftType, xyData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IFFTXYMathUtils::ConjugateFFT ( IUnknown * fftData ) {
+    HRESULT _hr = raw_ConjugateFFT(fftData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IFFTXYMathUtils::MultiplyFFT ( IUnknown * fftData1, IUnknown * fftData2, IUnknown * fftDataMultiplied ) {
+    HRESULT _hr = raw_MultiplyFFT(fftData1, fftData2, fftDataMultiplied);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface IMatLabUtils wrapper method implementations
+//
+
+inline HRESULT IMatLabUtils::ConvertToMatLab ( IUnknown * fmanChromData, double startMass, double endMass, double stepMass, _bstr_t matLabFilename ) {
+    HRESULT _hr = raw_ConvertToMatLab(fmanChromData, startMass, endMass, stepMass, matLabFilename);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline void IMatLabUtils::PutMassListMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_MassListMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutScanTimeMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_ScanTimeMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutFileNameMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_FileNameMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutIntensityMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_IntensityMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutSaveFileNameMatrix ( long _arg1 ) {
+    HRESULT _hr = put_SaveFileNameMatrix(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutUseScanTimeNotScanNumber ( long _arg1 ) {
+    HRESULT _hr = put_UseScanTimeNotScanNumber(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline HRESULT IMatLabUtils::ConvertDADToMatLab ( IUnknown * fmanChromData, double startWavelength, double endWavelength, double stepWavelength, _bstr_t matLabFilename ) {
+    HRESULT _hr = raw_ConvertDADToMatLab(fmanChromData, startWavelength, endWavelength, stepWavelength, matLabFilename);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline void IMatLabUtils::PutWavelengthListMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_WavelengthListMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutSparseIntensityMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_SparseIntensityMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void IMatLabUtils::PutIndexMatrixName ( _bstr_t _arg1 ) {
+    HRESULT _hr = put_IndexMatrixName(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline HRESULT IMatLabUtils::ConvertToSparseMatLab ( IUnknown * fmanChromData, double threshold, _bstr_t matLabFilename ) {
+    HRESULT _hr = raw_ConvertToSparseMatLab(fmanChromData, threshold, matLabFilename);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface IProcessingXYMathUtils wrapper method implementations
+//
+
+inline HRESULT IProcessingXYMathUtils::Centroid ( IUnknown * xyData, double heightFraction, double mergeDistance, long reportIntensityNotArea, IUnknown * centroidData ) {
+    HRESULT _hr = raw_Centroid(xyData, heightFraction, mergeDistance, reportIntensityNotArea, centroidData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::AssignChargeStates ( IUnknown * centroidData, double massTolerance ) {
+    HRESULT _hr = raw_AssignChargeStates(centroidData, massTolerance);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::Centroid2 ( IUnknown * xyData, double heightFraction, double mergeDistance, IUnknown * centroidData ) {
+    HRESULT _hr = raw_Centroid2(xyData, heightFraction, mergeDistance, centroidData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::Centroid2WithStartsAndStops ( IUnknown * xyData, double heightFraction, double mergeDistance, IUnknown * centroidData, IUnknown * startsAndStopsData ) {
+    HRESULT _hr = raw_Centroid2WithStartsAndStops(xyData, heightFraction, mergeDistance, centroidData, startsAndStopsData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::Centroid2PPM ( IUnknown * xyData, double heightFraction, double mergeDistance, IUnknown * centroidData ) {
+    HRESULT _hr = raw_Centroid2PPM(xyData, heightFraction, mergeDistance, centroidData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::Centroid2WithStartsAndStopsPPM ( IUnknown * xyData, double heightFraction, double mergeDistance, IUnknown * centroidData, IUnknown * startsAndStopsData ) {
+    HRESULT _hr = raw_Centroid2WithStartsAndStopsPPM(xyData, heightFraction, mergeDistance, centroidData, startsAndStopsData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::SavitzkyGolaySmooth ( IUnknown * xyData, short halfWindow ) {
+    HRESULT _hr = raw_SavitzkyGolaySmooth(xyData, halfWindow);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::SetDataEventsStatus ( IUnknown * xyData, long status ) {
+    HRESULT _hr = raw_SetDataEventsStatus(xyData, status);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::CentroidNew ( IUnknown * xyData, IUnknown * centroidData ) {
+    HRESULT _hr = raw_CentroidNew(xyData, centroidData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IProcessingXYMathUtils::GetCentroidNewItem ( long index, double * mz, double * intensity, double * width, short * charge, long * isMonoPeak, double * monoMZ, double * startMZ, double * stopMZ ) {
+    HRESULT _hr = raw_GetCentroidNewItem(index, mz, intensity, width, charge, isMonoPeak, monoMZ, startMZ, stopMZ);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface IXYBinary wrapper method implementations
+//
+
+inline _bstr_t IXYBinary::ConvertToBinary ( IUnknown * xyData, long swapBytes ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_ConvertToBinary(xyData, swapBytes, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline HRESULT IXYBinary::ConvertFromBinary ( _bstr_t binaryData, long swapBytes, IUnknown * xyData ) {
+    HRESULT _hr = raw_ConvertFromBinary(binaryData, swapBytes, xyData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IXYBinary::Swap4Bytes ( _bstr_t binaryData ) {
+    HRESULT _hr = raw_Swap4Bytes(binaryData);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IXYBinary::AddBinary ( _bstr_t binary1, _bstr_t binary2, BSTR * binarySum, float tolerance ) {
+    HRESULT _hr = raw_AddBinary(binary1, binary2, binarySum, tolerance);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}

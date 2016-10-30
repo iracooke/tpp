@@ -1,0 +1,46 @@
+OS X Installation
+=================
+
+OS X is not offically supported by the TPP team.  However, thanks to
+contributions from TPP users, we do have instructions for building the
+TPP and getting started on Apple systems. 
+
+
+Changes
+=======
+
+* Notes on Building TPP on OSX Mavericks (10.9)
+
+* Updated 2013/11/01 following various patching to compile with boost_1.54.0
+  and clang v5.0. This is un-tested on any previous version of OSX.
+
+
+Steps
+=====
+
+1. Download and install homebrew from:
+
+	http://brew.sh/
+	
+2. Install necessary libraries using homebrew
+	
+	$ brew install gnuplot
+	$ brew install libpng
+	$ brew install gd
+	
+3. Create a Makefile.config.incl to configure the build, e.g.
+
+	$ cd trans_proteomic_pipeline/src
+	$ vi Makefile.config.incl
+	
+	TPP_ROOT=/home/user1/tpp/
+	TPP_WEB=/tpp/
+
+4. Build and install:
+
+	$ make && make install
+	
+This *should* finish without problems, leaving TPP ready to use from the
+command line. To use the web interface you'll need to install Apache using
+homebrew, and configure per the Linux instructions.
+

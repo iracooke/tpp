@@ -1,0 +1,42 @@
+Some notes on getting TPP running on Amazon EC2.
+
+I have used AMIs:
+ami-bb709dd2, which is an Ubuntu 9.10 linux image, EC2 "small" size,
+ami-7806e211, which is an Ubuntu 8.10 from Alestic (with login-as-root capability but now seems to be obsolete and refuses to launch),
+ami-1cd73375, which is Ubuntu 8.04.  
+
+You should check
+http://alestic.com/
+to find out whether that's been updated (it has!).
+
+First you have to get set up with Amazon Web Services Extensible Compute Cloud (EC2) and Simple Storage Service (S3):
+	http://www.amazon.com/ec2
+	http://docs.amazonwebservices.com/AWSEC2/2008-02-01/GettingStartedGuide/?ref=get-started
+
+You'll end up with an "Access Key" and a "Secret Access Key" which you'll need again and again.
+
+The idea is that your permanent files will live in S3, while tempfiles and all the processing happen in EC2.  We'll mount your S3 "bucket" as a filesystem in EC2, so when you restart EC2 your files aren't lost.  For that, we use S3FS: 	http://code.google.com/p/s3fs/wiki/FuseOverAmazon
+ 
+
+One of the easiests way to fire up an EC2 machine is the Firefox EC2UI plugin:
+	http://aws.typepad.com/aws/2007/04/fastest_way_to_.html
+Or the equally nice Amazon EC2 console
+    https://console.aws.amazon.com/
+	
+These notes are in terms of EC2UI, but that's just a personal choice.
+
+Just fire up the EC2UI plugin and start an instance of the appropriate AMI (see the 2nd paragraph of this doc for details on choosing an AMI).  Note the public DNS and connect to that with SSH (I use puTTY in windows).
+
+An easy way to create and manage S3 buckets is the S3fox Firefox plugin:
+	https://addons.mozilla.org/en-US/firefox/addon/3247
+	http://www.s3fox.net/
+
+Once you have an S3 bucket and a running EC2 instance, copy amazon_ec2_bootstrap.sh (found in the same directory as this doc that you're reading right now) to ~ on the EC2 machine, then (replacing the stuff in [brackets] with your actual values- lose the brackets, too) on EC2:
+
+  chmod 777 amazon_ec2_bootstrap.sh
+  ./amazon_ec2_bootstrap.sh [your_AWS_ACCESS_KEY_ID] [your_AWS_SECRET_ACCESS_KEY] [your_S3_bucket_name]
+
+After some grinding you'll be ready to run TPP in your browser!
+http://[your_ec2_instance_public_dns]/tpp/cgi-bin/tpp_gui.pl
+
+Of course you don't have any data yet, use something like WinSCP to copy files to /var/www/s3/ISB/data.

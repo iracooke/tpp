@@ -1,0 +1,175 @@
+#
+# NAME
+#
+# Generic Template for mascot parameter files
+#
+# DESCRIPTION
+#
+# This is a parameters file for the qmascot command used to run mascot MS/MS
+# peptide spectra searches on a cluster.  The format of the file is almost
+# identical to the format mascot uses to specify parameters in its "mgf"
+# format.  Each parameter is specified on a single line, using a simple
+# "name" = "value" format.  Lines beginning with a '#' are precieved as
+# comments and are ignored.
+#
+# For convenience all of the allowable mascot parameters have already been 
+# provided in this file along with a short description for each. To use
+# a parameter simply uncomment the line the parameter is on and provide a
+# value.  Please see the Mascot documentation for more information about the
+# allowable values and function of each parameter.
+#
+
+
+# HEADER PARAMETERS -----------------------------------------------------------
+#
+# The following parameters, if uncommented will be included in the top
+# of every mgf file.
+#
+
+# Database to use as defined in the mascot.dat file
+# DB=  
+
+# Database entries to be searched.  Takes a list of double quoted, comma
+# separated values
+# ACCESSION=
+
+# Peptide charge.  Value can be from 8- to 8+ and combinations.
+# CHARGE=
+
+# Enzyme.  Values are defined in the mascot enzymes file, e.g. Trypsin.
+# CLE=
+
+# Search title that applies to the whole search
+# COM=
+
+# Precursor removal.  Pair of comma separated integers.
+# CUTOUT=
+
+# Perform decoy search, 0 (false - default) 1 (true)
+# DECOY=0
+
+# Error tolerant. 0 (false - default) 1 (true)
+# ERRORTOLERANT=0
+
+# MS/MS data file format.  Accepts a whole host of different options, but
+# for all intensive purposes this option should not be used.
+# FORMAT=
+
+# NA translation. Comma separated list of frames
+# FRAMES=
+
+# MS/MS ion series, e.g. ESI-QUAD-TOF.  See mascot documentation for a full 
+# list of options.
+# INSTRUMENT=
+
+# Variable modifications.  Format/values defined in the unimod.xml file.
+# IT_MODS=
+
+# Fragment ion mass tolerance.
+# ITOL=
+
+# Units for ITOL, Either "Da" or "mmu"
+# ITOLU=
+
+# Type of mass.  Either "Monoisotopic" or "Average"
+# MASS=
+
+# Fixed modifications as defined in unimod.xml
+# MODS=
+
+# Misassigned C13.  Values from 0 to 2.
+#PEP_ISOTOPE_ERROR=
+
+# Partials, integer between 0 and 9. Defaults to 1.
+# PFA=1
+
+# Precursor m/z, optionally followed by intensity.  Should be > 100.
+# PRECURSOR=
+
+# Quantitation method as defined in quantitation.xml
+# QUANTITATION=
+
+# Report maximum # hits.   AUTO or integer
+# REPORT=
+
+# Type of report.  Value of: protein, peptide, archive, concise, select, or
+# unassigned.
+# REPTYPE=peptide
+
+# Type of search.  One of PMF, SQ, or MIS
+# SEARCH=
+
+# Protein mass (kDa).
+# SEG=
+
+# Taxonomy as defined in the mascot taxonomy file.
+# TAXONOMY=
+
+# Peptide mass tolerance.
+# TOL=
+
+# Units of TOL.  %, ppm, mmu or Da
+# TOLU=
+
+# Uncommitted parameters
+# USER00=
+# ...
+# USER12=
+
+# User's email
+# USEREMAIL=
+
+# User's name
+# USERNAME=
+
+
+# SPECTRUM PARAMETERS ----------------------------------------------------------
+#
+# The remaining parameters found between the BEGIN IONS/END IONS will be
+# included at the top of each spectrum iin the mgf file.
+# 
+
+BEGIN IONS
+
+# Amino acid composition.
+# COMP=
+
+# Error tolerant sequence tag
+# ETAG
+
+# MS/MS ion series, e.g. ESI-QUAD-TOF.  See mascot documentation for a full 
+# list of options.
+# INSTRUMENT=
+
+# Variable modifications.  Format/values defined in the unimod.xml file.
+# IT_MODS=
+
+# Peptide mass, optionally followed by intensity. This parameter is here for
+# reference only as it should already be provided in the mgf during the
+# conversion process.
+# PEPMASS=
+
+# Retention time or range (in seconds). 
+# RTINSECONDS=
+
+# Scan number of range.
+# SCANS=
+
+# Amino acid sequence.  Can have multiple SEQs.
+# SEQ=
+
+# Sequence tag. Can have multiple TAGs
+# TAG=
+
+# Query title.
+# QUERY=
+
+# Peptide mass tolerance.
+# TOL=
+
+# Units of TOL.  %, ppm, mmu or Da
+# TOLU=
+
+END IONS
+
+

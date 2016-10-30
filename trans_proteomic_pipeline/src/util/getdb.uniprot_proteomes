@@ -1,0 +1,63 @@
+#!/bin/csh
+
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/ARATH.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/BOVIN.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/CAEEL.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/CANFA.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/CHICK.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/DANRE.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/DROME.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/HUMAN.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/MOUSE.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/PIG.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/RAT.fasta.gz
+wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/proteomes/YEAST.fasta.gz
+
+gunzip ARATH.fasta.gz
+gunzip BOVIN.fasta.gz
+gunzip CAEEL.fasta.gz
+gunzip CANFA.fasta.gz
+gunzip CHICK.fasta.gz
+gunzip DANRE.fasta.gz
+gunzip DROME.fasta.gz
+gunzip HUMAN.fasta.gz
+gunzip MOUSE.fasta.gz
+gunzip PIG.fasta.gz
+gunzip RAT.fasta.gz
+gunzip YEAST.fasta.gz
+
+#
+# append date to filenames  ----------
+#
+set currdate=`date +%Y%m%d`
+
+mv ARATH.fasta ARATH.fasta.$currdate
+mv BOVIN.fasta BOVIN.fasta.$currdate
+mv CAEEL.fasta CAEEL.fasta.$currdate
+mv CANFA.fasta CANFA.fasta.$currdate
+mv CHICK.fasta CHICK.fasta.$currdate
+mv DANRE.fasta DANRE.fasta.$currdate
+mv DROME.fasta DROME.fasta.$currdate
+mv HUMAN.fasta HUMAN.fasta.$currdate
+mv MOUSE.fasta MOUSE.fasta.$currdate
+mv PIG.fasta PIG.fasta.$currdate
+mv RAT.fasta RAT.fasta.$currdate
+mv YEAST.fasta YEAST.fasta.$currdate
+
+
+#
+# append common contaminants to databases  ----------
+# entries from www.thegpm.org/crap/ with sequence updated from UniProt 2010_05
+#
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> ARATH.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.ecoli contam.human contam.other contam.yeast >> BOVIN.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> CAEEL.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> CANFA.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> CHICK.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> DANRE.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> DROME.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.other contam.yeast >> HUMAN.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> MOUSE.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> PIG.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> RAT.fasta.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> YEAST.fasta.$currdate

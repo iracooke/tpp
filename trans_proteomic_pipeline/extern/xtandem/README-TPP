@@ -1,0 +1,62 @@
+INTRODUCTION
+============
+
+This version of X!Tandem has been modified to make use of the open-source scoring function "k-score", developed by the CPAS project, version 2007-03-27. For the purpose of TPP, k-score scoring is superior to native X!Tandem scoring. Native X!Tandem scoring is still available via options in this distribution, but is not recommended for TPP. 
+In the src directory, the two files mscore_k.h and mscore_k.cpp are included to enable k-score scoring.
+
+For more information see
+https://proteomics.fhcrc.org/CPAS/announcements/Published%20Experiments/Tandem%20Pluggable%20Scoring/thread.view?rowId=1885
+
+It has also been modifed to work with Hadoop (MapReduce).  Additionally it may be compiled to work with MPI, thanks to code borrowed from X!!Tandem.
+
+If you wish to build for this purpose using Amazon Elastic Map Reduce, use Debian Lenny (AMI ami-dcf615b5 works).
+
+Build against MPICH2 for X!!Tandem capability.  
+
+
+SEARCH PARAMETERS
+=================
+
+X!Tandem uses a two-tier parameter file structure, in which one can have a default parameter file, and a separate custom parameter file that contains user-defined options. The options specified in the latter can override those in the former. It can be a matter of confusion, so we provide the following files in the bin directory with detailed instructions:
+
+1. tandem_params.xml
+
+	This is where the user specifies search parameters, including protein sequence databases, mass tolerances, static and variable modifications, refinement search, etc. Detailed instructions are contained in the file on how to use the various options. It also specifies the input query spectrum file (in .mzXML format) and the output file, and because of this, a different tandem_params.xml is required for EACH mzXML file. If you are using the Petunia GUI, the tedious task of duplicating tandem_params.xml for each mzXML file and setting the input/output files for each is automatically done for you.
+
+2. isb_default_input_kscore.xml
+
+	This is the recommended default parameter file for k-score searching. Only expert users who understand the inner workings of X!Tandem should modify this file.
+
+3. isb_default_input_native.xml
+
+	Should native X!Tandem scoring is desired, this is the default parameter file to used. Only expert users should modify this file.
+
+4. gpm_default_input.xml, gpm_input.xml
+
+	These should NEVER by used for TPP. This is the original version from GPM, provided here for the sake of completeness.
+
+More information on the options can be found on the site: http://www.thegpm.org/TANDEM/api/index.html .
+
+
+TAXONOMY
+========
+
+X!Tandem does not refer to the protein sequence databases (.fasta files) directly, but rather through a taxonomy.xml file. The taxonomy.xml file lists all protein sequence databases and their locations. The tandem_params.xml file then refer to identifiers in the taxonomy.xml file. A template taxonomy.xml file is provided in the bin directory. You will need to populate it with the protein sequence databases on your file system. If you are using the Petunia GUI, in which you can specify sequence databases (.fasta) files directly, a taxonomy.xml file will be automatically created on the fly in the search directory for you.
+
+Before you start a search, it is good practice to check that in the tandem_params.xml file, the "list path, taxonomy information" attribute points to the correct taxonomy.xml file, and that the "protein, taxon" attribute refers to a valid database identifier in that taxonomy.xml file.  
+
+
+REVERTING TO THE ORIGINAL X!TANDEM SOURCE 
+=========================================
+
+To revert to the original X!Tandem source (NOTE that you don't need to do this to use native X!Tandem scoring; it can be simply specified as options):
+
+ cd src
+ make clean
+ rm Makefile
+ cp Makefile-orig-07-07-01-2 Makefile
+ rm mscore_k*
+ make
+
+This will instead install the original X!Tandem (the same version downloaded from www.thegpm.org). 
+

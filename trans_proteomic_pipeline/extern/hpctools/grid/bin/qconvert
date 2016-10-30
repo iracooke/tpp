@@ -1,0 +1,313 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings ------------------------------------------------------------
+   
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+
+   # Default queue to submit jobs to
+   QQUEUE=${QQUEUE:-}
+
+   # Default project to submit jobs to
+   QPROJECT=${QPROJECT:-}
+  
+   # Request convert resource
+   QSUBFLAGS="-l convert ${QSUBFLAGS}"
+
+   # remote convert commands 
+   REMOTECONVERT=${REMOTECONVERT-$(which remoteconvert_msconvert.pl || true)}
+   OLDREMOTECONVERT=${OLDREMOTECONVERT-$(which remoteconvert.pl || true)}
+   
+   # Default remote convert options
+   REMOTECONVERTFLAGS="${REMOTECONVERTFLAGS-} --log2screen "
+
+# -----------------------------------------------------------------------------
+
+# 
+# Output a message to STDERR on usage and exit with a error status
+# @param  text to print
+#
+function usage() {
+   [ "$1" ] && echo "$(basename $0): $*" 1>&2
+   echo "Usage:"
+   echo "$(basename $0) [options] [-- [qsub options]]"
+   echo
+   echo "Options:"
+   echo "   -h, --help          help"
+   echo "   -m, --man           manual"
+   echo
+   echo "[qsub options]         All flags following '--' are passed to qsub"
+   exit 1
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+   prog=convert
+   
+   cmds=$(cat <<EOF
+   
+SERVER="--server msconvert"
+RC=$REMOTECONVERT
+if [ "${QQUEUE}" = "convert.ebox.q" ]; then
+   SERVER="--server ebox"
+fi
+if [ "${QQUEUE}" = "convert.themis.q" ]; then
+   SERVER="--server themis"
+   RC=$OLDREMOTECONVERT
+fi
+
+\$RC $REMOTECONVERTFLAGS \$SERVER "$file"
+
+# Check the results
+set +x
+if [ -f "${file%.*}".mzXML ]; then
+   if ! tail -c 9 "${file%.*}".mzXML | grep -q mzXML; then
+      echo "Error: mzXML file looks incomplete"
+      mv "${file%.*}".mzXML "${file%.*}".mzXML.err
+      exit 1
+   fi
+elif [ -f "${file%.*}".mzML ]; then
+   if ! tail -c 15 "${file%.*}".mzML | grep -q mzML; then
+      echo "Error: mzML file looks incomplete"
+      mv "${file%.*}".mzML "${file%.*}".mzML.err
+      exit 1
+   fi
+else
+   echo "Error: missing mzML/mzXML file for $file"
+   exit 1
+fi
+EOF
+)
+}
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "Q" grid functions
+
+# Check for necessary programs
+[ -x "${REMOTECONVERT}" ]    || die "Error no remoteconvert.pl in your path"
+[ -x "${OLDREMOTECONVERT}" ] || die "Error no old remoteconvert.pl in your path"
+
+# Check options
+INPUTS=
+while [ "$1" ]; do
+   case "$1" in 
+   --)
+      shift
+      QSUBFLAGS+=" $*"
+      break
+      ;;
+   -h|--help)
+      usage
+      ;;
+   -m|--man)
+      pod2man -n 'HPC TOOLS' -c 'Trans-Proteomic Pipeline (TPP)' $0 | nroff -man | less
+      exit
+      ;;
+   --server)
+      shift
+      SERVERFLAG=shift
+      ;;
+   *.d|*.wiff|*.RAW|*.baf|*.raw)
+      [ -e "$1" ] || usage "Error: $1 file not found";
+      INPUTS="$INPUTS $1"
+      shift
+      ;;
+   -*)
+      REMOTECONVERTFLAGS+="$1 "
+      shift
+      ;;
+   *)
+      REMOTECONVERTFLAGS+="\"$1\" "
+      shift
+      ;;
+   esac
+done
+[ -z "$INPUTS" ] && usage "Error missing one or more input files"
+
+if [ "$SERVERFLAG" != "" ]; then
+   echo "Error: server flag shouldn't be used for submitting cluster jobs"
+   echo "Please specify the server using queue names, e.g. -- -q convert-ebox"
+   exit 1
+fi
+
+submit_jobs
+exit 0
+done
+
+
+# -- POD DOCUMENTATION ------------------------------------------------------
+#
+# Documentation for command.  Uses perl's POD with a shell trick.  Simply run
+# pod2man on this file to get the documentation.
+#
+: <<POD
+
+=head1 NAME
+
+qconvert - converts MS proprietary files into mzML/MzXML formatted files
+
+=head1 SYNOPSIS            
+
+qconvert [options] [converter options] file(s) [-- [qsub options]]
+
+ Options:
+   -h, --help           Displays a short help about the command
+   -m, --man            Displays the manual page for the command
+   
+ Converter Options:
+ 
+   [see additional information below]
+   
+=head1 DESCRIPTION
+
+Queues one or more batch jobs to convert mass spectrometry files from their 
+original proprietary format to the open standards mzML (or mzXML) format.
+
+This script uses a ISB in-house tool called  B<remoteconvert.pl> to manage the 
+actual conversions.  It copies the files to convert to a Windows OS based
+computer that has the various converter tools already installed on it and then
+runs appropriate converter based on the type of file to convert. The resulting
+output files are then copied back from the Windows OS based computer to the
+local directory.
+
+By default the files are converted using the program "msconvert" from
+ProtoWizard and the output format is mzML.  To override these options, this
+script accepts the same options as the B<remoteconvert.pl> program.
+
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<-m, --manual>
+
+Print a longer version of the help.
+
+=item B<converter options>
+
+Run remoteconvert.pl -h to see what all options are accepted.
+
+=item B<qsub options>
+
+It is possible to pass options to the qsub command directly (the command which
+submits the batch job script) by placing these options after a "--" indicator.
+Please man qsub to see what all options are accepted.
+
+=back
+
+=head1 OUTPUT
+
+Will print a job identifier for each search job submitted. See either OpenPBS
+qsub or Sun Grid Engine's qsub command manual for more  information about the
+format of the job id and how to use them.
+
+Each search program's output (both STDOUT and STDERR) will be captured in a 
+job specific "<input file>.convert.qlog" file.  This file is written by the
+cluster software when the job finishes.
+
+=head1 EXAMPLE 1
+
+To convert a single wiff file:
+
+=over 5
+
+S<qconvert mydata.wiff>
+
+=back
+
+This will submit a job to the cluster to convert mydata.wiff in the
+current directory.  The results will be written to the file mydata.mzML and
+any output for the job will be captured in mydata.convert.log.
+
+=head1 EXAMPLE 2
+
+To convert all of the .d runs in the current directory:
+
+=over 5
+
+S<qconvert *.d>
+ 
+=back
+ 
+=head1 EXAMPLE 3
+
+To convert a single .d directory into a mzXML file:
+
+=over 5
+
+S<qconvert --mzXML mydata.d>
+ 
+=back
+ 
+=head1 EXAMPLE 4
+
+To convert a single .d directory using a different queue:
+
+=over 5
+
+S<qconvert mydata.d -- -q serial>
+
+=back
+
+This command will submit the convert job to the queue named "serial" in the
+cluster.
+
+=head1 ADDITIONAL RESOURCES
+
+=item L<http://proteowizard.sourceforge.net/>
+
+ProteoWizard toolset which includes msconvert, the HUPO-PSI standard compliant
+conversion tool.
+ 
+=item L<http://tools.proteomecenter.org/wiki/index.php?title=Formats:mzXML>
+
+Details on the various mass spectroscopy data file formats and their converters.
+
+=item remoteconvert.pl -h
+
+ISB remote conversion tool.
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut
+
+POD
+

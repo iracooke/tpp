@@ -1,0 +1,18 @@
+This directory contains a "hotfix" patch for the InSpecT MS/MS database
+search tool in order to convert inspect output into pep.xml ouput for use
+in TPP.  
+
+Before installing this patch please check that you have the latest
+version of InSpecT as it may already contain the necessary code changes.
+
+Joe Slagel
+12/28/2011
+
+
+INSTALLATION
+
+To install first make sure the inspect program is in your PATH enviroment
+variable and type:
+
+   make install
+

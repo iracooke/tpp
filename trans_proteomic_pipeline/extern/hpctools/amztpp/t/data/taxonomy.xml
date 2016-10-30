@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<bioml label="x! taxon-to-file matching list">
+<taxon label="testtaxon">
+<file format="peptide" URL="test.fasta" />
+</taxon>
+</bioml>

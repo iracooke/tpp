@@ -1,0 +1,113 @@
+#!/bin/csh
+
+#
+# get IPI human, mouse, rat  ----------
+#
+ftp -n <<DONE_WITH_FTP
+open ftp.ebi.ac.uk
+user anonymous email@yourdomain.com
+bin
+prompt
+get /pub/databases/IPI/current/ipi.HUMAN.fasta.gz ipi.HUMAN.fasta.gz
+get /pub/databases/IPI/current/ipi.MOUSE.fasta.gz ipi.MOUSE.fasta.gz
+get /pub/databases/IPI/current/ipi.RAT.fasta.gz ipi.RAT.fasta.gz
+get /pub/databases/IPI/current/ipi.ARATH.fasta.gz ipi.ARATH.fasta.gz
+get /pub/databases/IPI/current/ipi.CHICK.fasta.gz ipi.CHICK.fasta.gz
+get /pub/databases/IPI/current/ipi.BOVIN.fasta.gz ipi.BOVIN.fasta.gz
+get /pub/databases/IPI/current/README README
+DONE_WITH_FTP
+
+#
+# uncompress downloaded file  ----------
+#
+rm -f ipi.HUMAN.fasta
+rm -f ipi.MOUSE.fasta
+rm -f ipi.RAT.fasta
+rm -f ipi.ARATH.fasta
+rm -f ipi.CHICK.fasta
+rm -f ipi.BOVIN.fasta
+gunzip ipi.HUMAN.fasta.gz
+gunzip ipi.MOUSE.fasta.gz
+gunzip ipi.RAT.fasta.gz
+gunzip ipi.ARATH.fasta.gz
+gunzip ipi.CHICK.fasta.gz
+gunzip ipi.BOVIN.fasta.gz
+
+#
+# substitute to get just IPI name as first word  ----------
+# add escaping of special chars ', ", & and substitute < to [ and > to ] in def lines
+# 
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.HUMAN.fasta > ipi.HUMAN.fasta2
+mv -f ipi.HUMAN.fasta2 ipi.HUMAN.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.MOUSE.fasta > ipi.MOUSE.fasta2
+mv -f ipi.MOUSE.fasta2 ipi.MOUSE.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.RAT.fasta > ipi.RAT.fasta2
+mv -f ipi.RAT.fasta2 ipi.RAT.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.ARATH.fasta > ipi.ARATH.fasta2
+mv -f ipi.ARATH.fasta2 ipi.ARATH.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.CHICK.fasta > ipi.CHICK.fasta2
+mv -f ipi.CHICK.fasta2 ipi.CHICK.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(IPI:\)\([^| .]*\)\(.*\)$/>\2 \1\2\3/' < ipi.BOVIN.fasta > ipi.BOVIN.fasta2
+mv -f ipi.BOVIN.fasta2 ipi.BOVIN.fasta
+
+#
+# append date to filenames  ----------
+#
+set currdate=`date +%Y%m%d`
+
+rm -f ipi.HUMAN.fasta.$currdate ipi.MOUSE.fasta.$currdate ipi.RAT.fasta.$currdate ipi.ARATH.fasta.$currdate ipi.CHICK.fasta.$currdate ipi.BOVIN.fasta.$currdate
+
+mv ipi.HUMAN.fasta ipi.HUMAN.fasta.$currdate
+mv ipi.MOUSE.fasta ipi.MOUSE.fasta.$currdate
+mv ipi.RAT.fasta ipi.RAT.fasta.$currdate
+mv ipi.ARATH.fasta ipi.ARATH.fasta.$currdate
+mv ipi.CHICK.fasta ipi.CHICK.fasta.$currdate
+mv ipi.BOVIN.fasta ipi.BOVIN.fasta.$currdate
+
+rm -f ipi.README.$currdate
+mv README ipi.README.$currdate
+
+#
+# append common contaminants & trypsin to databases  ----------
+#
+cat trypsin.bovine trypsin.porcine >> ipi.HUMAN.fasta.$currdate
+cat keratin.ipi trypsin.bovine trypsin.porcine >> ipi.MOUSE.fasta.$currdate
+cat keratin.ipi trypsin.bovine trypsin.porcine >> ipi.RAT.fasta.$currdate
+cat keratin.ipi trypsin.bovine trypsin.porcine >> ipi.ARATH.fasta.$currdate
+cat keratin.ipi trypsin.bovine trypsin.porcine >> ipi.CHICK.fasta.$currdate
+cat keratin.ipi trypsin.porcine >> ipi.BOVIN.fasta.$currdate

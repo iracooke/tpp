@@ -1,0 +1,133 @@
+mzXMLRecalibrator
+
+**
+* Ted Holzman
+* FHCRC
+* Feb 2005
+* tholzman@fhcrc.org
+*
+
+This was originally designed to strip calibration scans (lock-spray
+scans) from mzXML files from Waters Micromass mass spectrometers.
+These devices can be set to run a calibration between every few data scans.
+The data is initially stored in a proprietary format (.raw directories)  
+The Masswolf program is (currently) used to convert the proprietary .raw
+directories into mzXML files.  Masswolf inserts the calibration scans
+into the generated mzXML files; it does not recalibrate the data
+scans.
+
+This program fills the gap left by Masswolf:  it strips out the calibration
+scans, which do not belong to the same sample as the data scans, and 
+recalibrates the data.
+
+mzXMLRecalibrator also has a few other uses.
+
+   Usage:
+       mzXMLRecalibrator [<options>] <inputfilename> [<outputfilename>]
+   Options are: 
+      -i nnn      calibration scan interval    (default nnn = 20)
+      -r          don't recalibrate            (default = OFF)
+      -m fff      calibration m/z              (default fff = 785.842600)
+      -c          calibration scans only       (default = OFF)
+      -s          don't strip calib scans      (default = OFF)
+      -x          use mzXML to get calib scans (default = OFF)
+      -z          strip peaks of intensity 0   (default = OFF)
+      -w nnn      size of recalibration window (default nnn = 6)
+      -2          strip msLevel 2 and higher   (default = OFF)
+      -g          guess calibration interval   (default = OFF)
+
+-i nnn
+	This defines the interval at which the Micromass machine was
+        set to run lock-sprays.  The default calibration mass is
+        is 785.84 m/z units.  If the mass of the calibration scan
+        differs from this value (or the value set in the -m option
+        below) by more than 0.1%, mzXMLRecalibrator will print a 
+        warning.
+
+-r      
+        Don't recalibrate.  Typically, just strip the lock-sprays.
+        
+-m fff
+        Set the calibration m/z.  The default value, 785.84 represents
+        the mass of GFP.
+
+-c
+	Create an mzXML file with the calibration scans only.  Strip
+        the data scans.
+
+-s
+       Don't strip scans.  
+
+-x   
+       Newer experimental versions of Masswolf place information in the
+       mzXML file which indicates whether a scan is a lock-spray.  If
+       you know you've used this cooler Masswolf, you can set this option.
+
+-z
+       Strip out peaks whose intensity is 0.  This can dramatically reduce
+       the size of mzXML file. 
+
+-w nnn
+       When mzXMLRecalibrator recalibrates data scans, it uses an algorithm
+       very similar to the one the native Waters software uses.  This involves
+       a correction factor derived from a moving window of n calibrations. N
+       is typically 6, but may be set by the spectrometer operator.  This 
+       option allows the user to change the correction window in the same way.
+
+-2
+       This option strips msLevel 2 and higher scans from the file.
+
+-g
+       Guess calibration interval and replace current one with the guessed one.
+       If the guess differs from the current one, display a warning.  Guessing
+       algorithm:  
+          (1) Look at the basepeakMZs for all scans.  Determine whether they
+              fall within 0.1% tolerance of the gold standard m/z.
+          (2) Look at all hypothetical intervals between 10 and n-scans/2.
+              Score them with (n_within_tolerance)-(n_out_of_tolerance)
+          (3) Return the highest score
+       This can take a bit of time for large mzXML files, but it avoids the
+       necessity of knowing the calibration interval.  When MassWolf v 1.01
+       and later was used to create the original mzXML file, -x is much faster
+       than -g.  
+
+In all cases mzXMLRecalibrator will rebuild the scan index and the final SHA1
+for the new mzXML file, so it may be used to correct damaged files.  It warns
+the user if she is trying to recalibrate a non-Waters mzXML.
+
+Some examples:
+
+1.   mzXMLRecalibrator xyzzy.mzXML
+
+     Create a new file called "recalibrated-xyzzy.mzXML".  Assume that lock-sprays
+     occur at scan 1, 21, 41, 61 etc.  Strip them out.  Rebuild index and checksum.
+
+2.   mzXMLRecalibrator -r -i 30 xyzzy.mzXML xyzzy-new.mzXML
+     
+     Create a new file called "xyzzy-new.mzXML".  Strip out the lock-sprays at
+     1, 31, 61 etc.  Don't recalibrate.  Build new index and checksum.
+
+3.   mzXMLRecalibrator -r -s xyzzyBroken.mzXML xyzzyFixed.mzXML
+
+     Fix broken mzXML file.  Don't strip.  Don't recalibrate.  Just rebuild.
+
+4.   mzXMLRecalibrator -2 -r -s xyzzyMS-MS.mzXML xyzzyMS.mzXML
+
+     Strip out scans with an msLevel attribute != "1".  Turn an MS/MS file into
+     an MS file.  Rebuild.
+
+5.   mzXMLRecalibrator -i 30 xyzzyIntervalReallyIs20.mzXML
+        Warning - Scan 31 is considered a calibration scan but is more than   
+           0.10% different from 785.842600 (gold standard)
+        Warning - Scan 91 is considered a calibration scan but is more than   
+           0.10% different from 785.842600 (gold standard)
+        Warning - Scan 151 is considered a calibration scan but is more than   
+           0.10% different from 785.842600 (gold standard)
+        ...
+
+     mzXMLRecalibrator -i 30 -g xyzzyIntervalReallyIs20.mzXML
+        Warning - changing calibration interval from 30 to 20
+
+mzXMLRecalibrator currently can be built for linux/gcc, cygwin/gcc and WIN32.
+It is designed to work with very large files.
+

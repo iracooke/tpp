@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+   
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+
+   # Programs
+   INSPECT=${INSPECT-$(which inspect || true)}
+   MZXML2SEARCH=${MZXML2SEARCH=$(which MzXML2Search || true)}
+   INSPECT2PEP=${INSPECT2PEP-$(which InspectToPepXML.py 2>/dev/null || true)}
+   
+# -----------------------------------------------------------------------------
+
+#
+# Copy mascot.params file 
+#
+function copy_params () {
+   cp -f $1 $2
+   perl -pi -e "s|^\s*#?(\s*spectra\s*),.*|\$1,$3|" $2
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+# Note: inspect always seems to exit with zero
+#
+function setcmds() {
+   prog=inspect
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml
+   rm -f $odir$root.inspect
+   
+   copy_params $P_OPT "$odir$root.inspect.params" "$idir$root.mgf" 
+   
+   # Note that mzxml2search dumps its output files in the input directory
+   cmds=$(cat <<EOF
+DIR=$(dirname $INSPECT)
+$MZXML2SEARCH -mgf $file
+$INSPECT -r \$DIR -i $odir$root.inspect.params -o $odir$root.inspect -e $odir$root.inspect.err
+cat $odir$root.inspect.err 2>/dev/null || true
+rm -f $odir$root.inspect.err || true
+$INSPECT2PEP -i $odir$root.inspect -o $odir$root.pep.xml -p $odir$root.inspect.params 
+
+EOF
+)
+}
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${INSPECT}" ]      || die "Error no inspect in your path"
+[ -x "${MZXML2SEARCH}" ] || die "Error no MzXML2Search in your path"
+[ -f "${INSPECT2PEP}" ]  || die "Error no InspectToPepXML.py in your path"
+
+search_options inspect.params "*.mzML|*.mzXML" $*
+submit_jobs
+
+exit 0

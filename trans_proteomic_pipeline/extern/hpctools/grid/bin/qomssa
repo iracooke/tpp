@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings ------------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+   
+   # Default project to submit jobs to
+   QPROJECT=${QPROJECT:-}
+
+   # Default qsub flags
+   MAX_PROCS=8
+   QSUBFLAGS="-pe serial ${MAX_PROCS} ${QSUBFLAGS}"
+     
+   # Default OMSSA flags
+   OMSSA_FLAGS="${OMSSA_FLAGS-} -nt ${MAX_PROCS} "
+
+   # Programs
+   OMSSACL=${OMSSACL-$(which omssacl || true)}
+   MZXML2SEARCH=${MZXML2SEARCH-$(which MzXML2Search || true)}
+   INTERACTPARSER=${INTERACTPARSER-$(which InteractParser || true)}   
+
+# -----------------------------------------------------------------------------
+   
+#
+# Read in omssa parameters file.  Format is simple, consisting of the command
+# line parameters and comments indicated with a leading '#' character.
+#
+function read_params () {
+   OMSSA_FLAGS+=`perl -pe 's/\s*\#.*$//; s/\r//g; s/^\n//' $1`
+   OMSSA_FLAGS=`echo $OMSSA_FLAGS`    # remove newlines
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+   prog=omssa
+   
+   rm -f $odir$root.pep.xml                     # Remove previous results
+   
+   # Note that mzxml2search dumps its output files in the input directory
+   cmds=$(cat <<EOF
+$MZXML2SEARCH -mgf $file
+$OMSSACL -fm "$idir$root.mgf" -op $odir$root.pepXML $OMSSA_FLAGS
+# Now make the pep.xml compatible with TPP by running InteractParser
+# on it.
+$INTERACTPARSER $odir$root.pep.xml $odir$root.pepXML -L0 -R9999 \
+   -a$idir
+rm -f $odir$root.pepXML
+EOF
+)
+}
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "Q" grid functions
+
+# Check for necessary programs
+[ -x "${OMSSACL}" ]      || die "Error no omssacl in your path"
+[ -x "${MZXML2SEARCH}" ] || die "Error no MzXML2Search in your path"
+
+search_options omssa.params "*.mzML|*.mzXML" $*
+read_params "$P_OPT"
+submit_jobs
+
+exit 0

@@ -1,0 +1,20 @@
+[xtandem - defork work]  Adding a couple of directories for inspection by other developers - these are *not* part of the build.
+
+src_merged - this is my proposed but INCOMPLETE merge of current (12/1/2010) official X!Tandem code with our current src directory, as of SVN rev 5252 (so it includes my Hadoop work).  It should compile just fine but I've not tried to run any data through it yet - there are questions to be answered first.
+
+src_cyclone - this is unaltered code from the 12/1/2010 release of X!Tandem, for comparison purposes, don't edit this, and don't expect it to compile.
+
+
+RISKS
+
+This is a long delayed update of a forked project, and I worry about possibly having tossed out changes made from the ISB/LabKey/Insilicos camp but not commented as such.  Somebody other than and in addition to me should do a careful before-and-after comparison across the whole directory.
+
+The mscore area is of greatest concern - my sense is that there are substantial changes needed to the k score because there are substantial changes to the standard tandem scoring function since our last synch-up.   Do a 3-way diff src_merged,  src_cyclone, and src to get a feel for the changes.  The src_cyclone code really punted on this one with an ifdef for pluggable scoring that, to my eye, screams "you are falling behind".   I do wonder though how much of the new work really belongs in the mscore class instead of the mscore_tandem child class it's in now.
+ 
+We should look hard at replacing the pwiz code with the new mzML read code, although I've not really given it the once over.  Probably doesn't do compressed peaklists at the moment if its consistent with the tandem mzXML read code.
+
+There's a fair bit of customization on our side in mspectrumcondition.cpp, around max mass and max charge.  It looks to me like the official code is buggy, I put an email in.  Ron's response is that yes, a lot of that is cruft.  I've offered him a patch including the max mass filter.
+
+Brian Pratt
+Insilicos LLC
+Dec 20 2010

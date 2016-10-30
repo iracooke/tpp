@@ -1,0 +1,9 @@
+spectra,mzXML_filename
+Mods,3
+instrument,ESI-ION-TRAP
+protease,Trypsin
+SequenceFile,test.fasta
+mod,442.2,C,fix
+mod,16.0,M,opt
+mod,8.0,C,opt
+PMTolerance,3.0

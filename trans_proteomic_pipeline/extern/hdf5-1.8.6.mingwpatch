@@ -1,0 +1,165 @@
+diff -Naur hdf5-1.8.6.orig/perform/Makefile.in hdf5-1.8.6/perform/Makefile.in
+--- hdf5-1.8.6.orig/perform/Makefile.in	2011-02-14 16:24:24.000000000 +0000
++++ hdf5-1.8.6/perform/Makefile.in	2012-04-20 20:45:09.426125700 +0000
+@@ -55,7 +55,6 @@
+ 	$(top_srcdir)/config/commence.am \
+ 	$(top_srcdir)/config/conclude.am COPYING
+ @BUILD_PARALLEL_CONDITIONAL_FALSE@bin_PROGRAMS =  \
+-@BUILD_PARALLEL_CONDITIONAL_FALSE@	h5perf_serial$(EXEEXT)
+ @BUILD_PARALLEL_CONDITIONAL_TRUE@bin_PROGRAMS = h5perf$(EXEEXT)
+ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_4)
+ TESTS = $(check_PROGRAMS)
+@@ -75,7 +74,7 @@
+ @BUILD_PARALLEL_CONDITIONAL_TRUE@	mpi-perf$(EXEEXT)
+ @BUILD_ALL_CONDITIONAL_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2)
+ am__EXEEXT_4 = iopipe$(EXEEXT) chunk$(EXEEXT) overhead$(EXEEXT) \
+-	zip_perf$(EXEEXT) perf_meta$(EXEEXT) h5perf_serial$(EXEEXT) \
++	zip_perf$(EXEEXT) perf_meta$(EXEEXT) \
+ 	$(am__EXEEXT_3)
+ PROGRAMS = $(bin_PROGRAMS)
+ benchpar_SOURCES = benchpar.c
+@@ -93,13 +92,6 @@
+ h5perf_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+ 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(h5perf_LDFLAGS) \
+ 	$(LDFLAGS) -o $@
+-am_h5perf_serial_OBJECTS = sio_perf.$(OBJEXT) sio_engine.$(OBJEXT) \
+-	sio_timer.$(OBJEXT)
+-h5perf_serial_OBJECTS = $(am_h5perf_serial_OBJECTS)
+-h5perf_serial_DEPENDENCIES = $(LIBH5TOOLS) $(LIBH5TEST) $(LIBHDF5)
+-h5perf_serial_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+-	$(h5perf_serial_LDFLAGS) $(LDFLAGS) -o $@
+ iopipe_SOURCES = iopipe.c
+ iopipe_OBJECTS = iopipe.$(OBJEXT)
+ iopipe_DEPENDENCIES = $(LIBH5TEST) $(LIBHDF5)
+@@ -134,10 +126,10 @@
+ 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+ 	$(LDFLAGS) -o $@
+ SOURCES = benchpar.c chunk.c $(h5perf_SOURCES) \
+-	$(h5perf_serial_SOURCES) iopipe.c mpi-perf.c overhead.c perf.c \
++	iopipe.c mpi-perf.c overhead.c perf.c \
+ 	perf_meta.c zip_perf.c
+ DIST_SOURCES = benchpar.c chunk.c $(h5perf_SOURCES) \
+-	$(h5perf_serial_SOURCES) iopipe.c mpi-perf.c overhead.c perf.c \
++	iopipe.c mpi-perf.c overhead.c perf.c \
+ 	perf_meta.c zip_perf.c
+ ETAGS = etags
+ CTAGS = ctags
+@@ -419,7 +411,6 @@
+ 
+ # Add h5perf and h5perf_serial specific linker flags here
+ h5perf_LDFLAGS = $(LT_STATIC_EXEC) $(AM_LDFLAGS)
+-h5perf_serial_LDFLAGS = $(LT_STATIC_EXEC) $(AM_LDFLAGS)
+ 
+ # Some programs are not built or run by default, but can be built by hand or by
+ # specifying --enable-build-all at configure time.
+@@ -431,7 +422,6 @@
+ # `make check' will run. List them in the order they should be run.
+ TEST_PROG = iopipe chunk overhead zip_perf perf_meta h5perf_serial $(BUILD_ALL_PROGS)
+ h5perf_SOURCES = pio_perf.c pio_engine.c pio_timer.c
+-h5perf_serial_SOURCES = sio_perf.c sio_engine.c sio_timer.c
+ 
+ # These are the files that `make clean' (and derivatives) will remove from
+ # this directory.
+@@ -441,7 +431,6 @@
+ # depend on test or tools library.
+ LDADD = $(LIBHDF5)
+ h5perf_LDADD = $(LIBH5TOOLS) $(LIBH5TEST) $(LIBHDF5)
+-h5perf_serial_LDADD = $(LIBH5TOOLS) $(LIBH5TEST) $(LIBHDF5)
+ perf_LDADD = $(LIBH5TEST) $(LIBHDF5)
+ iopipe_LDADD = $(LIBH5TEST) $(LIBHDF5)
+ zip_perf_LDADD = $(LIBH5TOOLS) $(LIBH5TEST) $(LIBHDF5)
+@@ -557,9 +546,6 @@
+ h5perf$(EXEEXT): $(h5perf_OBJECTS) $(h5perf_DEPENDENCIES) 
+ 	@rm -f h5perf$(EXEEXT)
+ 	$(h5perf_LINK) $(h5perf_OBJECTS) $(h5perf_LDADD) $(LIBS)
+-h5perf_serial$(EXEEXT): $(h5perf_serial_OBJECTS) $(h5perf_serial_DEPENDENCIES) 
+-	@rm -f h5perf_serial$(EXEEXT)
+-	$(h5perf_serial_LINK) $(h5perf_serial_OBJECTS) $(h5perf_serial_LDADD) $(LIBS)
+ iopipe$(EXEEXT): $(iopipe_OBJECTS) $(iopipe_DEPENDENCIES) 
+ 	@rm -f iopipe$(EXEEXT)
+ 	$(LINK) $(iopipe_OBJECTS) $(iopipe_LDADD) $(LIBS)
+diff -Naur hdf5-1.8.6.orig/test/Makefile.in hdf5-1.8.6/test/Makefile.in
+--- hdf5-1.8.6.orig/test/Makefile.in	2011-02-14 16:24:25.000000000 +0000
++++ hdf5-1.8.6/test/Makefile.in	2012-04-20 20:45:31.110125700 +0000
+@@ -704,7 +704,7 @@
+ INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+ 
+ # Test script for error_test and err_compat
+-TEST_SCRIPT = testerror.sh testlibinfo.sh testcheck_version.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = error_test$(EXEEXT) err_compat$(EXEEXT)
+ 
+diff -Naur hdf5-1.8.6.orig/tools/h5copy/Makefile.in hdf5-1.8.6/tools/h5copy/Makefile.in
+--- hdf5-1.8.6.orig/tools/h5copy/Makefile.in	2011-02-14 16:24:25.000000000 +0000
++++ hdf5-1.8.6/tools/h5copy/Makefile.in	2012-04-20 20:46:36.384125700 +0000
+@@ -379,7 +379,7 @@
+ 
+ # Test programs and scripts
+ TEST_PROG = h5copygentest
+-TEST_SCRIPT = $(srcdir)/testh5copy.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = h5copy$(EXEEXT)
+ 
+diff -Naur hdf5-1.8.6.orig/tools/h5diff/Makefile.in hdf5-1.8.6/tools/h5diff/Makefile.in
+--- hdf5-1.8.6.orig/tools/h5diff/Makefile.in	2011-02-14 16:24:25.000000000 +0000
++++ hdf5-1.8.6/tools/h5diff/Makefile.in	2012-04-20 20:45:58.167125700 +0000
+@@ -395,7 +395,7 @@
+ 
+ # Test programs and scripts
+ TEST_PROG = h5diffgentest
+-TEST_SCRIPT = $(srcdir)/testh5diff.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT) $(TEST_SCRIPT_PARA)
+ # The parallel test script testph5diff.sh actually depends on testh5diff.sh.
+ SCRIPT_DEPEND = h5diff$(EXEEXT) $(H5PDIFF) $(srcdir)/testh5diff.sh
+diff -Naur hdf5-1.8.6.orig/tools/h5dump/Makefile.in hdf5-1.8.6/tools/h5dump/Makefile.in
+--- hdf5-1.8.6.orig/tools/h5dump/Makefile.in	2011-02-14 16:24:25.000000000 +0000
++++ hdf5-1.8.6/tools/h5dump/Makefile.in	2012-04-20 20:46:54.350125700 +0000
+@@ -384,7 +384,7 @@
+ 
+ # Test programs and scripts
+ TEST_PROG = h5dumpgentest
+-TEST_SCRIPT = testh5dump.sh testh5dumpxml.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = h5dump$(EXEEXT)
+ 
+diff -Naur hdf5-1.8.6.orig/tools/h5ls/Makefile.in hdf5-1.8.6/tools/h5ls/Makefile.in
+--- hdf5-1.8.6.orig/tools/h5ls/Makefile.in	2011-02-14 16:24:26.000000000 +0000
++++ hdf5-1.8.6/tools/h5ls/Makefile.in	2012-04-20 20:46:09.833125700 +0000
+@@ -369,7 +369,7 @@
+ INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)/tools/lib
+ 
+ # Test programs and scripts
+-TEST_SCRIPT = testh5ls.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = h5ls$(EXEEXT)
+ 
+diff -Naur hdf5-1.8.6.orig/tools/h5stat/Makefile.in hdf5-1.8.6/tools/h5stat/Makefile.in
+--- hdf5-1.8.6.orig/tools/h5stat/Makefile.in	2011-02-14 16:24:26.000000000 +0000
++++ hdf5-1.8.6/tools/h5stat/Makefile.in	2012-04-20 20:46:44.415125700 +0000
+@@ -404,7 +404,7 @@
+ 
+ #test script and program
+ TEST_PROG = h5stat_gentest
+-TEST_SCRIPT = testh5stat.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = h5stat$(EXEEXT)
+ bin_SCRIPTS = 
+diff -Naur hdf5-1.8.6.orig/tools/misc/Makefile.in hdf5-1.8.6/tools/misc/Makefile.in
+--- hdf5-1.8.6.orig/tools/misc/Makefile.in	2011-02-14 16:24:26.000000000 +0000
++++ hdf5-1.8.6/tools/misc/Makefile.in	2012-04-20 20:46:23.924125700 +0000
+@@ -429,7 +429,7 @@
+ 
+ #test script and program
+ TEST_PROG = h5repart_gentest talign
+-TEST_SCRIPT = testh5repart.sh $(srcdir)/testh5mkgrp.sh
++TEST_SCRIPT = 
+ check_SCRIPTS = $(TEST_SCRIPT)
+ SCRIPT_DEPEND = h5repart$(EXEEXT) h5mkgrp$(EXEEXT)
+ bin_SCRIPTS = h5redeploy

@@ -1,0 +1,111 @@
+27-March-2009
+- added guess charge support (with -GC switch).  (There is still a 9% 
+  differences when compare to calling Mascot Processing Script within 
+  Analyst/AnalystQS.  These 9% are considered as "unable to 
+  automatically determine charge" by Mascot.)
+  **IMPORTANT**
+    - not tested with MS/MS averaging yet
+- remove experimental code for retrieval of whole spectra data point with a
+  single API invocation.  user reported memory leaks in API.
+- more accurately indicate DDE/DDEEx retrieval state
+
+08-May-2008
+- re-organise code to support AnalystQS 1.1, Analyst QS 2.0, Analyst 1.4.x and 
+  Analyst 1.5 beta in a single mzWiff executable (see ReadMe.txt)
+- added project configuration to build mzWiff with static link to remove 
+  depedencies on MSVC runtime DLLs, MFC DLLs and ZLIB DLL.
+
+09-January-2008
+- major re-organisation for performance enhancement (2-11x depending on data)
+- support outputing each sample as a separate mzXML file with switch "-s<num>-<num>"
+  the mzXML filename is suffixed with "-s<sample id>"
+- support switch "--only-compatible" where mzWiff will terminate if your installed 
+  Analyst/AnalystQS library is not compatible with the copy used to create your
+  .wiff file
+- support compatibility test for automated pipeline conversion by omitting the
+  output format (--mzXML or --mzML).  You could use exit value (%ERRORLEVEL% / $?)
+  to check for state of translation.
+
+12-December-2007
+- Added two switches --Analyst and --AnalystQS to force mzWiff to assume a 
+  particular library is installed.
+  Note that when this switch is activated, mzWiff could crash if there is 
+  any incompatibility.
+
+11-December-2007
+- Handle error condition where the number of samples and number of periods 
+  returned by API differs from that recorded in file.
+  (Thanks, Dmitrii Tchekhovskoi)
+
+30-October-2007
+- Added code to suffix the sample id with " (<sample name>)" if "--coordinate" 
+  option is provided.
+- Some wiff files can trigger a dialog box 
+  [
+  <ExploredataObjects>
+  ! Explore has detected a problem in this file
+    and is unable to find the correct precursor mass for this scan.
+    To obtain the correct precursor mass please reopen the file using the IDA Explorer
+  ]
+  which blocks the translation until it has been dismissed.
+  A separate thread checks for its presence, and dismissed it programmatically.
+  (Thanks, Dmitrii Tchekhovskoi)
+
+03-September-2007
+- mzXML output contains information to link merged scan back to original scans
+    and vice versa.  Original "raw" scan will have merged="1" and 
+    mergedScanNum attributes in its <scan ..> element.  The merged resultant
+    scan will have merged="1" attribute but no mergedScanNum attribute.  
+    Instead, it contains <scanOrigin ..> subelement, where its num attribute
+    is the <scan num=".." ..> of the original "raw" scan.
+- added <nativeScanRef ..> subelement to <scan ..> so that we can trace back
+    to the exact spectra in the native file.  (use the switch "--coordinate")
+    E.g.:
+      <nativeScanRef coordinateType="ABI / SCIEX" >
+        <coordinate name="sample" value="1" />
+        <coordinate name="period" value="0" />
+        <coordinate name="experiment" value="2" />
+        <coordinate name="cycle" value="1515" />
+      </nativeScanRef>
+- PENDING: support for .wiff file contain MCA experiments
+- PENDING: guess the charge when exact value is not recorded
+
+29-August-2007
+- MS/MS averaging implemented
+  (NOTE: This does not match some results of Mascot.dll.  Upon
+   inspection, the Mascot.dll seems to have merged spectra that
+   has exceeded the max cycle span allowed.  E.g. with "-GMA10"
+   option, Mascot.dll will have spectras that are 11 cycle apart.
+   My decision is to stick to logics rather than making everything
+   exactly the same.  For 100+ merged spectras, you are likely to 
+   get a 2% difference.)
+- options redesigned to match ReAdW.exe as much as possible
+  * centroid option change: -centroid or -c  (-CT previously)
+  * new centroid MS1 option: -c1
+  * peak threshold percentage -PP<num>: 
+    <num> range 0 to 100  (range 0.00-1.00 previously)
+  * Averaging Precursor Mass Tolerance: default 0 (1 previously)
+    This means that MS/MS averaging is off by default
+  * verbose option: takes on counting where
+     -v : verbose for INFO related output
+     -v -v : verbose for DEBUG related output
+     -v -v -v : verbose for DETAILED DEBUG output (really noisy)
+- support mapped network drive (Thanks, Dmitrii Tchekhovskoi)
+- support non-fullpath .wiff filename (Thanks, Dmitrii Tchekhovskoi)
+- MRM parent/daughter pair information. (Thanks, Vinzenz Lange)
+- NOTE: to include ParameterSvr.dll into the libs\analystqs and libs\analyst
+- PENDING: provide information to link merged scan back to original scans
+           and vice versa
+- PENDING: determine merged scans count with filtering considered
+- PENDING: support for .wiff file contain MCA experiments
+- PENDING: guess the charge when exact value is not recorded
+- PENDING: confirming exact meaning of experiment time (==retention time?)
+
+  
+31-July-2007
+- Implemented single executable for both Analyst and AnalystQS
+- Invoke Analyst(QS) library call for centroid
+- Implemented Analyst(QS) logics for de-isotoping
+- Implemented MS/MS filtering
+- PENDING: MS/MS averaging as per Mascot.dll processing script
+

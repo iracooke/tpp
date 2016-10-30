@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+    
+   # Default number of maximum threads
+   MAX_PROCS=${MAX_PROCS:-8}
+
+   # Default qsub flags use 8 threads on 1 host
+   QSUBFLAGS="-pe serial ${MAX_PROCS} ${QSUBFLAGS}"
+   
+   # Default msgf+ flags
+   MSGFPLUS_FLAGS=${MSGFPLUS_FLAGS:- -thread ${MAX_PROCS} }
+
+   # Programs
+   JAVA=${JAVA-`which java 2>/dev/null || echo ''`}
+   IDCONVERT=${IDCONVERT-`which idconvert 2>/dev/null || echo ''`}
+
+# -----------------------------------------------------------------------------
+
+#
+# Read in msgf+ parameters file.  Format is simple, consisting of the command
+# line parameters and comments indicated with a leading '#' character.
+#
+function read_params () {
+   MSGFPLUS_FLAGS+=`perl -pe 's/\s*\#.*$//; s/\r//g; s/^\n//' $1`
+   MSGFPLUS_FLAGS=`echo $MSGFPLUS_FLAGS`    # remove newlines
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=msgfplus
+   
+   params="$(rel2abs $P_OPT)"
+
+   # Remove previous results
+   rm -f $odir$root.pep.xml  $odir$root.$prog.qlog
+   
+   cmds=$(cat <<EOF
+cd '${odir:-$PWD}'
+$JAVA -Xmx2000M -jar /proteomics/sw/msgfplus/MSGFPlus.jar \
+   $MSGFPLUS_FLAGS -s $file -o $root.mzid
+
+# Hesitantly adding this for David S. to fix some issue
+perl -pi -e 's/"\?"/"-"/' $root.mzid
+#
+
+$IDCONVERT $root.mzid --pepXML
+mv $root.pepXML $root.pep.xml
+
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${JAVA}" ] || die "Error no java in your path"
+[ -x "${IDCONVERT}" ] || die "Error no idconvert in your path"
+
+search_options msgfplus.params '*.mzML|*.mzXML|*.mgf|*.mzML.gz|*.mzXML.gz' $*
+read_params "$P_OPT"
+submit_jobs
+
+exit 0

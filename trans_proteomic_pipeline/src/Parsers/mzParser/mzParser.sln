@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzParser", "mzParser.vcproj", "{53CF2153-49B7-40DA-B051-FFB71F3AE02A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestProject", "TestProject\TestProject.vcproj", "{7569DDC3-C325-4BFD-A095-353C4B03C6ED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{53CF2153-49B7-40DA-B051-FFB71F3AE02A} = {53CF2153-49B7-40DA-B051-FFB71F3AE02A}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{53CF2153-49B7-40DA-B051-FFB71F3AE02A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{53CF2153-49B7-40DA-B051-FFB71F3AE02A}.Debug|Win32.Build.0 = Debug|Win32
+		{53CF2153-49B7-40DA-B051-FFB71F3AE02A}.Release|Win32.ActiveCfg = Release|Win32
+		{53CF2153-49B7-40DA-B051-FFB71F3AE02A}.Release|Win32.Build.0 = Release|Win32
+		{7569DDC3-C325-4BFD-A095-353C4B03C6ED}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7569DDC3-C325-4BFD-A095-353C4B03C6ED}.Debug|Win32.Build.0 = Debug|Win32
+		{7569DDC3-C325-4BFD-A095-353C4B03C6ED}.Release|Win32.ActiveCfg = Release|Win32
+		{7569DDC3-C325-4BFD-A095-353C4B03C6ED}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

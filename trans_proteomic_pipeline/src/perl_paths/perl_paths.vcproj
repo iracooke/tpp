@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9.00"
+	Name="perl_paths"
+	ProjectGUID="{FE413033-7EBF-416F-97C2-B8452F87C3CB}"
+	RootNamespace="perl_paths"
+	Keyword="MakeFileProj"
+	TargetFrameworkVersion="131072"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory=".\perl_paths___Win32_Release"
+			IntermediateDirectory=".\perl_paths___Win32_Release"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops;$(SolutionDir)tpp_common_release.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="NMAKE Scripts /f perl_paths.mak &quot;PERL=c:\perl\bin\perl.exe&quot;  &quot;OBJ_ARCH=$(SolutionDir)$(ConfigurationName)&quot;"
+				ReBuildCommandLine="NMAKE Scripts /f perl_paths.mak &quot;PERL=c:\perl\bin\perl.exe&quot;  &quot;OBJ_ARCH=$(SolutionDir)$(ConfigurationName)&quot; /a"
+				CleanCommandLine=""
+				Output="$(SolutionDir)$(ConfigurationName)\ProteinProphet.pl"
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\perl_paths___Win32_Debug"
+			IntermediateDirectory=".\perl_paths___Win32_Debug"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops;$(SolutionDir)tpp_common_debug.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="NMAKE Scripts /f perl_paths.mak &quot;PERL=c:\perl\bin\perl.exe&quot;  &quot;OBJ_ARCH=$(SolutionDir)$(ConfigurationName)&quot;"
+				ReBuildCommandLine="NMAKE Scripts /f perl_paths.mak &quot;PERL=c:\perl\bin\perl.exe&quot;  &quot;OBJ_ARCH=$(SolutionDir)$(ConfigurationName)&quot; /a"
+				CleanCommandLine=""
+				Output="$(SolutionDir)$(ConfigurationName)\ProteinProphet.pl"
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl"
+			>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
+		</Filter>
+	</Files>
+	<Globals>
+		<Global
+			Name="DevPartner_IsInstrumented"
+			Value="0"
+		/>
+	</Globals>
+</VisualStudioProject>

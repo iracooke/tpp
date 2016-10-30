@@ -1,0 +1,165 @@
+Linux Installation Instructions
+-------------------------------
+
+This document contains instructions for building and installing TPP on a
+Linux/UNIX system.  The files in the installer_linux/ directory may also
+be of use.
+
+
+Prerequisites
+-------------
+
+To build and deploy TPP on a Linux/UNIX system you will need the following:
+
+  * g++ (any relatively recent version should work)
+
+  * Perl, version 5.8 or newer.  You may also need to install the 
+    IO::Uncompress::Gunzip package.
+
+  * A web server if you intend to use TPP's web interfaces.  We recommend
+    using Apache 2.2 or 2.4.
+
+  * GNUPlot - As of Nov 2014 we recommend version 4.6 or higher, earlier
+    versions may not work. 
+
+  * A XSLT Processor and XML Parser (converts XML to HTML for viewing data)
+
+    1.  We recommend the program xsltproc, which is usually distributed with
+        Linux so you most likely already have it.  It should reside in the
+        /usr/bin/ directory.  If it is not already on your computer, you can
+        download it for free at: http://xmlsoft.org/XSLT/downloads.html
+
+    2. Another freely available XSLT processor, Xalan, will also work fine
+       with ProteinProphet.    If you use it, just make sure it is installed
+       in a directory already on the library path, or else set the 
+       LD_LIBRARY_PATH variable to include its location.
+
+  * The following additional C/C++ libraries:
+
+       libgd2   www.libgd.org
+       libpng   www.libpng.org
+       zlib     www.gzip.org/zlib
+       libbz2   www.bzip.org
+
+    These libraries are very common on Linux distributions and may already
+    be installed on your system.  For building make sure to use the development
+    packages in order to have the required .h header files.
+
+
+Configuring
+-----------
+
+The directory src/ contains the source code for TPP and is built using GNU
+make.  The default settings for the build can be found in src/Makefile.inc and
+can be changed by creating your own build config file src/Makefile.config.incl
+and overriding the setting there.  Please don't edit src/Makefile.incl
+directly, as it may get overwritten next time you update your code.  Some 
+common settings that you may want to override are:
+
+1. In src/Makefile.config.incl set the TPP_ROOT variable to the directory where
+you want to install the TPP, include a trailing '/' when setting the path.
+
+        e.g. TPP_ROOT=/usr/local/tpp/
+
+2. In src/Makefile.config.incl set the TPP_WEB variable to the webserver root
+relative alias to the TPP, include a trailing '/' when setting the path.
+
+        e.g. TPP_WEB=/tpp/
+
+   WARNING: To avoid problems during the installation you MUST include the 
+            trailing '/' when setting the above two paths
+
+3. In src/Makefile.config.incl set the XSLT_PROC to the path of the XLST 
+processing program executable on your system.
+
+        e.g. XSLT_PROC=/usr/bin/xsltproc
+
+
+Building
+--------
+
+In the src/ directory, type 'make all' to compile the binaries.  
+
+
+Installing
+----------
+
+In the src directory, type 'make install'.  The TPP will be installed in the
+following directory structure by default:
+
+   /usr/local/tpp          TPP root directory
+   /usr/local/tpp/bin      binary directory containing command line programs
+   /usr/local/tpp/cgi-bin  CGI-BIN for tpp, contains all web served executables
+   /usr/local/tpp/etc      contains miscellaneous configuration files
+   /usr/local/tpp/html     contains all non-executable web served objects
+   /usr/local/tpp/lib      contains any libraries and modules
+   /usr/local/tpp/schema   contains all XML schema files
+
+
+Apache Configuration
+--------------------
+
+If you wish to use the web interface for TPP and are using the Apache web
+server the following Apache directives should be applied to your installation. 
+Please see the documentation on your specific platform for details on how to
+modify your Apache configuration.  In most cases you will either copy the
+following into your system http.conf file or place them in a file that will be
+included into Apache at startup.
+
+#
+# -- ISB Trans Proteomic Pipeline directives --------------------------------
+#
+RewriteEngine on
+
+# WEBSERVER_ROOT shoud point to the web servers document root directory
+# SetEnv WEBSERVER_ROOT /home/httpd/html
+# WEBSERVER_TMP controls the location TPP writes 
+SetEnv WEBSERVER_TMP /tmp
+
+# Should be the directory you installed TPP in
+Alias /tpp "/usr/local/tpp"
+Alias /ISB "/usr/local/tpp"
+
+# Redirect root /tpp requests to Petunia
+RewriteEngine on
+RedirectMatch ^/tpp/?$     /tpp/cgi-bin/tpp_gui.pl
+
+# Make sure SSRCALC is set correctly
+SetEnv SSRCALC /usr/local/tpp/bin
+
+# Give TPP cgi scripts more time
+TimeOut 86400
+
+<DirectoryMatch "/usr/local/tpp/cgi-bin">
+    AllowOverride AuthConfig Limit
+    Options ExecCGI
+    AddHandler cgi-script .pl .cgi
+    Order allow,deny
+    Allow from all
+    Satisfy all
+</DirectoryMatch>
+
+<DirectoryMatch "/usr/local/tpp/html">
+    AllowOverride None
+    Options Includes FollowSymLinks MultiViews
+    Order allow,deny
+    Allow from all
+</DirectoryMatch>
+
+<DirectoryMatch "/usr/local/tpp/schema">
+    AllowOverride None
+    Options Includes Indexes FollowSymLinks MultiViews
+    Order allow,deny
+    Allow from all
+</DirectoryMatch>
+
+#
+# Use mod_rewrite to rewrite http GET requests to retrieve TPP xml 
+# files to otherwise view them in the appropriate viewer. Use only
+# on GET requests as some viewers use HEAD requests to check status.
+#
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(/.*\.pep\.xml(\.gz)?)$ /tpp/cgi-bin/PepXMLViewer.cgi?xmlFileName=$1 [R,NE,L]
+
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(/.*\.prot\.xml(\.gz)?)$ /tpp/cgi-bin/protxml2html.pl?xmlfile=$1 [R,NE,L]

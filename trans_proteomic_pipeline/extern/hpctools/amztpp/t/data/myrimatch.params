@@ -1,0 +1,5 @@
+ProteinDatabase=/proteomics/jslagel/hpctools/amztpp/t/data/test.fasta
+StaticMods=C 57.0
+DynamicMods=M @ 16.0
+MinTerminiCleavages=1
+MaxMissedCleavages=1

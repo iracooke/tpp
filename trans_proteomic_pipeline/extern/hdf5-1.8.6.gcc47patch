@@ -1,0 +1,22 @@
+--- hdf5-1.8.6.orig/tools/lib/h5diff.c	2011-02-14 08:23:37.000000000 -0800
++++ hdf5-1.8.6/tools/lib/h5diff.c	2012-12-18 13:28:53.443089457 -0800
+@@ -617,7 +617,7 @@
+     char         filenames[2][MAX_FILENAME];
+     hsize_t      nfound = 0;
+     int i;
+-    //int i1, i2;
++    /* //int i1, i2; */
+     int l_ret;
+     const char * obj1fullname = NULL;
+     const char * obj2fullname = NULL;
+--- hdf5-1.8.6.orig/tools/lib/h5tools_utils.c	2011-02-14 08:23:37.000000000 -0800
++++ hdf5-1.8.6/tools/lib/h5tools_utils.c	2012-12-18 13:28:24.034719090 -0800
+@@ -40,7 +40,7 @@
+ int         opt_ind = 1;    /*token pointer                          */
+ const char *opt_arg;        /*flag argument (or value)               */
+ static int  h5tools_d_status = 0;
+-//static const char  *h5tools_progname = "h5tools";
++/* //static const char  *h5tools_progname = "h5tools"; */
+ static char  *h5tools_progname = "h5tools";
+ 
+ /* ``parallel_print'' variables */

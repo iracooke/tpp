@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+    
+   # Default qsub flags use max threads on 1 host
+   MAX_PROCS=8   
+   QSUBFLAGS="-pe serial ${MAX_PROCS} ${QSUBFLAGS}"
+
+   # Programs
+   SEQUEST=${SEQUEST-`which sequest 2>/dev/null`}
+   OUT2XML=${OUT2XML-`which Out2XML 2>/dev/null`}
+   
+   
+# -----------------------------------------------------------------------------
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=sequest
+   
+   params="$(rel2abs $P_OPT)"
+   input="$(basename $file)"
+
+   # Remove previous results
+   rm -f $odir$root.pep.xml  $odir$root.sequest.qlog
+   rm -rf $idir$root
+   
+   cmds=$(cat <<EOF
+   
+#
+# Path to the license file.  Make sure that only user/group 
+# readable permissions as other users are not licensed to run
+# this version
+#
+export UW_SEQUEST_LICENSE=/proteomics/sw/lic/uw.sequest.license
+cd $idir
+$SEQUEST -P$params $input
+
+# Uncomment this to save the sequest directory
+# tar czf $root.tgz $root
+
+# Convert top hit output to pep.xml 
+$OUT2XML $idir$root 1 -P$params
+if [ "$odir" ] && [ "$idir" != "$odir" ]; then 
+   mv $idir$root.pep.xml $odir$root.pep.xml
+   [ -f $root.tgz ] && mv $root.tgz $odir
+fi
+
+rm -rf $idir$root
+
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${SEQUEST}" ] || die "Error no sequest in your path"
+[ -x "${OUT2XML}" ] || die "Error no Out2XML in your path"
+
+search_options sequest.params '*.mzML|*.mzXML|*.mgf|*.mzML.gz|*.mzXML.gz' $*
+
+# Check the number of threads
+NT=$(perl -ne 'print $1 if /^\s*num_threads\s*=\s*(\d+)/' $P_OPT)
+if [[ $NT -eq 0 || $NT -gt "$MAX_PROCS" ]]; then
+   die "Error num_threads parameter should be set to value between 1 and $MAX_PROCS"
+fi
+submit_jobs

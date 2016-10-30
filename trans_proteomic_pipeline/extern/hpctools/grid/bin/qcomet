@@ -1,0 +1,105 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+    
+   # Default project to submit jobs to
+   QPROJECT=${QPROJECT:-}
+
+   # Default number of maximum processors (threads)
+   MAX_PROCS=${MAX_PROCS:-8}
+
+   # Default qsub flags use 8 threads on 1 host
+   QSUBFLAGS="-pe serial ${MAX_PROCS} ${QSUBFLAGS}"
+   
+   # Programs
+   COMET=${COMET-`which comet 2>/dev/null`}
+   INTERACTPARSER=${INTERACTPARSER-$(which InteractParser || true)}
+   
+# -----------------------------------------------------------------------------
+
+#
+# Check parameter file 
+#
+function check_params() {
+   NP=$(perl -ne 'print $1 if /^\s*num_threads\s*=\s*(\d+)/' $P_OPT)
+   if [[ $NP -eq 0 || $NP -gt "$MAX_PROCS" ]]; then
+      die "Error num_threads parameter should be set to value between 1 and $MAX_PROCS"
+   fi
+
+   PEPXML=$(perl -ne 'print $1 if /^\s*output_pepxmlfile\s*=\s*(\d+)/' $P_OPT)
+   if [[ $PEPXML -ne 1 ]]; then
+      die "Error output_pepxmlfile parameter should be set to 1"
+   fi
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=comet
+   
+   params="$(rel2abs $P_OPT)"
+   input="$(basename $file)"
+
+   # Remove previous results
+   rm -f $odir$root.pepXML $odir$root.pep.xml  $odir$root.$prog.qlog
+   
+   cmds=$(cat <<EOF
+   
+$COMET -P$params -N$odir$root $file
+mv $odir$root.pep.xml $odir$root.pepXML
+
+# Use InteractParser to make sure the results are TPP compatible
+$INTERACTPARSER $odir$root.pep.xml $odir$root.pepXML -L0 -R9999 \
+   -a$idir
+rm -f $odir$root.pepXML
+
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+# Check for necessary programs
+[ -x "${COMET}" ] || die "Error no comet in your path"
+
+search_options comet.params '*.mzML|*.mzXML|*.mgf|*.mzML.gz|*.mzXML.gz' $*
+check_params
+submit_jobs

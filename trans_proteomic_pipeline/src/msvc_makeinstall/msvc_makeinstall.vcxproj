@@ -1,0 +1,328 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Profile|Win32">
+      <Configuration>Profile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{93C9D446-A0BA-41D8-82F5-BE8D3F68A8CD}</ProjectGuid>
+    <RootNamespace>msvc_makeinstall</RootNamespace>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">del $(SolutionDir)$(Configuration)\TPP_setup*.exe</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\TPP_setup.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">XML_STATIC;WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(ProjectDir)msvc_makeinstall.bat $(SolutionDir) $(Configuration)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">del $(SolutionDir)$(Configuration)\TPP_setup*.exe</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">del $(SolutionDir)$(Configuration)\TPP_setup*.exe</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\TPP_setup.exe</NMakeOutput>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)$(Configuration)\TPP_setup.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">XML_STATIC;WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">XML_STATIC;WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\extern\xtandem\src\xtandem.vcxproj">
+      <Project>{bc4d027c-57bd-4b55-8cce-460c1b2b517f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\crypt.vcxproj">
+      <Project>{73f20568-ea9a-4dfb-ad49-714a3372ea52}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Enzyme\EnzymeDigestionParser\EnzymeDigestionParser.vcxproj">
+      <Project>{fa37839c-691c-4518-b1f6-9ff4b773fd3e}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\mzXML\converters\dta2mzxml\dta2mzXML.vcxproj">
+      <Project>{01e65f74-652c-436e-a37e-fbf2c56e787c}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\mzXML\tools\readmzXML\readmzXML.vcxproj">
+      <Project>{0b490cdc-56d5-44c6-bac8-412dc9a1904a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Comet2XML\Comet2XML.vcxproj">
+      <Project>{cf0dad29-cfec-47cb-a01d-388d8bcc9f14}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Mascot2XML\Mascot2XML.vcxproj">
+      <Project>{fbab1a0e-b2e4-4d7a-a573-f1652d6d0e39}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Sequest2XML\CombineOut.vcxproj">
+      <Project>{30794d5f-d6d6-4a14-bf9b-6b1ce2fb2c94}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Sequest2XML\Out2XML.vcxproj">
+      <Project>{3d8ec312-f130-428f-92b4-5dace1489c8f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Sequest2XML\Sequest2XML.vcxproj">
+      <Project>{e2d12777-88fb-4d1d-9300-961ef1318fdb}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Sqt2XML\Sqt2XML.vcxproj">
+      <Project>{ecfbdb00-4690-4dea-bbb7-37588a638530}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Algorithm2XML\Tandem2XML\Tandem2XML.vcxproj">
+      <Project>{4716f9a9-3069-40fe-97ec-795bd9f0b7c3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\AnalysisSummaryParser\AnalysisSummaryParser.vcxproj">
+      <Project>{8603596b-c151-4f1c-8591-77be34a73dd5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\CompactParser\CompactParser.vcxproj">
+      <Project>{4c159544-0dc6-42dc-9017-73cbb41a5ba3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\DatabaseParser\DatabaseParser.vcxproj">
+      <Project>{0e7264ee-ca37-4041-8c23-896b0802428e}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\MzXML2Search\MzXML2Search.vcxproj">
+      <Project>{3726d03a-109f-4272-9a07-d3c196472c9f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\ramp\ramp.vcxproj">
+      <Project>{753f6c9a-e87c-401c-9474-cf502b799526}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\RefreshParser\RefreshParser.vcxproj">
+      <Project>{52c72cab-13ad-4928-a5f2-a34665dc36f2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\perl_paths\perl_paths.vcxproj">
+      <Project>{fe413033-7ebf-416f-97c2-b8452f87c3cb}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\ASAPRatio\ASAPCGIDisplay\ASAPCGIDisplay.vcxproj">
+      <Project>{166db374-82f0-4184-9039-ecb5d00383ec}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\ASAPRatio\ASAPRatioPeptideParser\ASAPRatioPeptideParser.vcxproj">
+      <Project>{ae4109d3-6e40-4c9f-87fc-4fbaa3f037e1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\ASAPRatio\ASAPRatioProteinRatioParser\ASAPRatioProteinRatioParser.vcxproj">
+      <Project>{7067fc2c-c2b4-4a33-8282-c2cbf691c4b1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\ASAPRatio\ASAPRatioPvalueParser\ASAPRatioPvalueParser.vcxproj">
+      <Project>{9bd25aa7-532a-4920-b290-6e8a4443e4cd}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\Libra\LibraPeptideParser\LibraPeptideParser.vcxproj">
+      <Project>{9182f452-62bd-40f2-998d-34f34328ffcc}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\Libra\LibraProteinRatioParser\LibraProteinRatioParser.vcxproj">
+      <Project>{b1771a89-b5b9-494e-a2c1-14eae6301a04}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\Q3\Q3ProteinRatioParser\Q3ProteinRatioParser.vcxproj">
+      <Project>{895d0531-c0d3-405b-8b77-50cdbb59a835}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\XPress\XPressCGIParser\xpress_prophet_update.vcxproj">
+      <Project>{fbb1c388-5adb-417b-b96a-d075f082bc0c}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\XPress\XPressCGIProteinDisplayParser\XPressCGIProteinDisplayParser.vcxproj">
+      <Project>{0aac9b58-3eb9-4e40-afdb-c9dd534b4183}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\XPress\XPressPeptideParser\XPressPeptideParser.vcxproj">
+      <Project>{7300a3df-851b-4da7-845c-ed4686ad7984}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\XPress\XPressPeptideUpdateParser\XPressPeptideUpdateParser.vcxproj">
+      <Project>{f9df4bc6-6371-44e5-a4dc-039f7b7bde88}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Quantitation\XPress\XPressProteinRatioParser\XPressProteinRatioParser.vcxproj">
+      <Project>{27420d22-18d4-44d9-9e03-98d0cddb8b05}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\runperl_src\runperl.vcxproj">
+      <Project>{60017eb1-f8f5-4c90-b8ce-df2270a544c7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\run_in\run_in.vcxproj">
+      <Project>{1b846a5b-0687-4339-a84a-03cedf6ff9cf}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\SpectraST\Lib2HTML.vcxproj">
+      <Project>{c37a7671-416f-4b7e-8869-d8a6b10defab}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\SpectraST\plotspectrast.vcxproj">
+      <Project>{28469ec5-487c-4ade-987a-d16b6a532713}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\SpectraST\plotspectrast_cgi.vcxproj">
+      <Project>{2fe795b4-71f1-40de-9b01-5fc98c8fec76}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\SpectraST\SpectraST.vcxproj">
+      <Project>{bb1c0daf-678e-463c-b617-1948542f3419}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\setWin32Permissions\setWin32Permissions.vcxproj">
+      <Project>{86e2f1db-bcc3-4b75-a281-c57f0341ee25}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\tpplib\tpplib.vcxproj">
+      <Project>{e0aac1af-6a80-4446-935a-3b54797e720f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\tpp_hostname\tpp_hostname.vcxproj">
+      <Project>{7c892bd7-ddd8-42a9-8dd0-e7159c85c713}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\decoyFASTA.vcxproj">
+      <Project>{35234cbf-a4a3-4f4a-ac30-e14a46acbf1d}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\dta-xml.vcxproj">
+      <Project>{99018e07-705b-4e7b-b3ff-612304cff3b1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\out2summary\out2summary.vcxproj">
+      <Project>{74de4144-cde5-4895-8ca7-558c5adee8a6}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\pep_dbcount.vcxproj">
+      <Project>{edbd9f16-9475-4292-9f45-f6c423499ec2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\qualscore.vcxproj">
+      <Project>{b0848ad7-41d5-4041-b933-012531e2dc38}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\util\runsearch.vcxproj">
+      <Project>{7d2f5f70-53f1-4d3d-9ec1-188370ae7f48}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation\InterProphet\InterProphetParser\InterProphetParser.vcxproj">
+      <Project>{dc11677d-dbe7-4221-987a-55509caa1999}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation\ModelParser\ModelParser.vcxproj">
+      <Project>{9c76addb-3226-4f0a-becd-21d51386e977}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation\PeptideProphet\PeptideProphetParser\PeptideProphetParser.vcxproj">
+      <Project>{c0d794fc-5616-49ca-9023-53359104971b}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation\ProteinProphet\ProteinProphet.vcxproj">
+      <Project>{b8834805-5f6d-4ad3-a07c-a785d5344abb}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Comet\comet-fastadb\Comet_fastadb.vcxproj">
+      <Project>{360f4a1c-0282-4ef5-8a66-761c620d78b2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Comet\Cometresult.vcxproj">
+      <Project>{9419c750-d3f7-4171-bca8-1b8778616b4f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Comet\plot-msms\plot_msms.vcxproj">
+      <Project>{754e885a-bff6-41a7-97e2-c3aa29049078}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Comet\sequest-tgz-out\sequest_tgz_out.vcxproj">
+      <Project>{9f686662-7754-488e-a812-1ea9e8ecbf52}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\InteractParser\InteractParser.vcxproj">
+      <Project>{8e081e5c-aa5c-450d-bb81-91b67e0d4d2a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Pep3D\cgi_Pep3D_xml\Pep3D_xml.vcxproj">
+      <Project>{58240c4d-c46f-45af-bf5e-c7158aff0c8f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Pep3D\disCidData_xml.vcxproj">
+      <Project>{2c0604a0-d087-4f3f-a070-580025adefa8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Pep3D\getCidData_xml.vcxproj">
+      <Project>{3d161175-686e-482f-a501-c8e226f07129}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\PepXMLViewer\PepXMLViewer.vcxproj">
+      <Project>{89a162d4-17a0-49a1-a941-64ba78ee7334}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\xinteract\xinteract.vcxproj">
+      <Project>{e47d393d-1081-44e2-a860-a9e6ebe96166}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

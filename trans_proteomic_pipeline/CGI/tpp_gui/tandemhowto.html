@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>Processing X!Tandem Results</title>
+<style type="text/css" title="text/css">
+@import url(tpp_gui.css);
+</style>
+</head>
+<body>
+
+<h2>Processing X!Tandem Results</h2>
+<p>IPP has some file name and file location requirements when processing X!Tandem results.  When X!Tandem is run from the IPP interface the user does not need to be aware of these requirements.  If you run X!Tandem from the IPP interface, IPP will do all the file conversions automatically and place the files where IPP can find them.</p>
+<p>If you are importing X!Tandem result into IPP you should be aware of the following requirements:</p>
+<ul type="square">
+<li>All the data files for a given experiment should be in the same directory (mzXML, pepXML, X!TandemXML and .dta folders).</li> 
+<li>All MS data and analysis results files should have the same base name.</li>
+<li>The results in X!Tandem format should end with 'tandem.xml'.</li>
+<li>The results in pepXML format should end with '.xml'.</li>
+<li>Folders containing the .dta should be in the data directory (see the Tools/Convert mzXML Files tabs for .dta conversion).</li>
+<li>The parameters file used to run X!Tandem must contain the following lines.
+<p>&lt;note type="input" label="output, xsl path"&gt; http://localhost/schema/tandem-style.xsl&lt;/note&gt;"</p>
+<p>&lt;note type="input" label="output, path hashing"&gt;no&lt;/note&gt;</p>
+</li>
+<li>The name and location of the .mzXML data file should be defined by a full path in the X!Tandem parameters file.</li>
+<li>The X!Tandem results file should be defined by a file name without a path in the X!Tandem parameters file.</li>
+</body>
+</html>

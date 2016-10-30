@@ -1,0 +1,5 @@
+version 1.1
+
+- Increased precision of the precursorMz to 8 digits
+- Fixed precursorMz bug
+- Added precursorCharge option 

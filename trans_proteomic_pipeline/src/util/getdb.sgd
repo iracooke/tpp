@@ -1,0 +1,44 @@
+#!/bin/csh
+
+
+#
+# get yeast_orf from SGD  ----------
+#
+ftp -n <<DONE_WITH_FTP
+open genome-ftp.stanford.edu
+user anonymous email@yourdomain.com
+bin
+prompt
+get /pub/yeast/data_download/sequence/genomic_sequence/orf_protein/orf_trans.fasta.gz SGDyeast.fasta.gz
+DONE_WITH_FTP
+
+#
+# uncompress downloaded file  ----------
+#
+rm -f SGDyeast.fasta
+gunzip SGDyeast.fasta.gz
+
+#
+# add escaping of special chars ', ", & and substitute < to [ and > to ] in def lines
+#
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(.*\)$/>\1/' < SGDyeast.fasta > SGDyeast.fasta2
+mv -f SGDyeast.fasta2 SGDyeast.fasta
+
+
+#
+# append current date to files ----------
+#
+set currdate=`date +%Y%m%d`
+
+rm -f SGDyeast.fasta.$currdate wormpep.$currdate
+mv SGDyeast.fasta SGDyeast.fasta.$currdate
+
+#
+# append common contaminants & trypsin to databases  ----------
+#
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> SGDyeast.fasta.$currdate

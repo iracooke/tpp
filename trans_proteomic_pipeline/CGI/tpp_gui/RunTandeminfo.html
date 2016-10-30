@@ -1,0 +1,22 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<style type="text/css" title="text/css">
+@import url(tpp_gui.css);
+</style>
+</head>
+<body>
+
+<h2>X!Tandem Search</h2>
+<p>X!Tandem searches can be submitted from the IPP interface if the computer that is running IPP also has X!Tandem. X!Tandem is an open source database matching program distributed by the Global Proteome Machine Organization (www.thegpm.org)</p>
+<p> To run X!Tandem from the IPP interface:
+<ul type="square">
+<li>The X!Tandem executable must be in the Windows path.</li>
+<li>The data should be in mxXML format.  Information on conversion of data to mzXML can be found under the mzXML tab of the IPP interface.</li>
+<li>The X!Tandem Parameters file that is required input should contain parameters for the search based on the 'default_input.xml' file provided with X!Tandem.</li>
+<li>Multiple mzXML files can be searched at one time with a single parameters file.</li>
+<li>Searches that require multiple parameters files should be submitted separately.</li>
+<li>IPP creates files containing the name of the file to be searched (tand_params.xml), search results in the X!Tandem format (tandem.xml) and search results in the pepXML format (.xml).  The basename of each output file matches the basename of the mzXML data file.</li>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<html>
+<head>
+<title>Auto-Post to SpectraST</title>
+<!-- This is free, copyrighted software. -->
+<!-- Please read the license that was distributed with this package for more info -->
+<!-- Copyright (C) 2006 Luis Mendoza, Institute for Systems Biology -->
+<!-- CVS Info: $Id: post_to_spectrast.html 1788 2006-12-06 20:52:16Z real_procopio $ -->
+
+<script language="JavaScript">
+var http_req = false;
+var tppcgi = false;
+var dtacgi = "dta-xml.cgi";
+
+var separator = "<hr width='100%' size='1' color='black' />";
+
+// taken from http://www.activsoftware.com/
+function getQueryVariable(variable) {
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    if (pair[0] == variable) {
+      return pair[1];
+    }
+  } 
+  return false;
+}
+
+
+// All-purpose wrapper for XMLHttpRequest call
+// if parameters=="GET" request is GET; otherwise POST
+function executeXHR(callback, url, parameters) {
+  http_req = false;
+
+  // branch for native XMLHttpRequest object
+  if (window.XMLHttpRequest) {
+    http_req = new XMLHttpRequest();
+  } // branch for IE/Windows ActiveX version
+  else if (window.ActiveXObject) {
+    try {
+      http_req = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+	http_req = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {}
+    }
+  }
+
+  // warn if we cannot create this object
+  if (!http_req) {
+    document.getElementById('errors').innerHTML = '-- Could not create XMLHttpRequest request object.<br/>';
+    return false;
+  }
+
+  http_req.onreadystatechange = callback;
+  if (parameters=="GET") {
+    http_req.open("GET", url, true);
+    http_req.send(null);
+  }
+  else { 
+    http_req.open("POST", url, true);
+    http_req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    http_req.setRequestHeader("Content-length", parameters.length);
+    http_req.setRequestHeader("Connection", "close");
+    http_req.send(parameters);
+  }
+}
+
+
+// Retrieve dta!
+function retrieveDta() {
+
+  tppcgi = getQueryVariable("tppcgi") || "/tpp/cgi-bin/";
+  // document.location.search already contains the "?"
+  var url = encodeURI(tppcgi+dtacgi+document.location.search+"&rand="+Math.random());
+
+  var callback = processDtaRequest;
+  executeXHR(callback, url, "GET");
+}
+
+
+// response handler - submit hidden form if successful
+function processDtaRequest() {
+  // only if req shows "loaded"
+  if (http_req.readyState == 4) {
+    // only if "OK"
+    if (http_req.status == 200) {
+
+      xmlresponse  = http_req.responseXML.documentElement;
+      rstat = xmlresponse.getElementsByTagName('STATUS')[0].firstChild.data;
+
+      if (rstat == 'ERROR') {
+        errmsg = xmlresponse.getElementsByTagName('MESSAGE')[0].firstChild.data;
+
+	document.getElementById('errors').innerHTML  = "<b>There was a problem processing your request:</b><br/>";
+	document.getElementById('errors').innerHTML += "<p>"+errmsg+"</p>"+separator;
+	document.getElementById('errors').innerHTML += "<textarea rows='15' cols='120'>"+http_req.responseText+"</textarea>";
+      }
+      else if (rstat == 'OK') {
+        autoSubmit(xmlresponse);
+      }
+      else {
+	document.getElementById('errors').innerHTML  = "<b>There was a problem processing your request:</b><br/>";
+	document.getElementById('errors').innerHTML += "<b>Invalid STATUS!</b><br/>";
+	document.getElementById('errors').innerHTML += "<textarea rows='15' cols='120'>"+http_req.responseText+"</textarea>";
+      }
+
+    } else {
+      document.getElementById('errors').innerHTML  = "<b>There was a problem retrieving the XML data: " + http_req.statusText + "</b>";
+      document.getElementById('errors').innerHTML += "<br/>URL: " + tppcgi+dtacgi;
+    }
+  }
+}
+
+
+// populate the fields and go!
+function autoSubmit(xmlresponse) {
+
+  var splib = getQueryVariable("fasta") || "human_consensus.splib";
+  document.getElementById('splib').value = splib;
+  document.getElementById('src').value  = xmlresponse.getElementsByTagName('TPP')[0].attributes[0].nodeValue;
+  document.getElementById('dta').value  = "Data from ";
+  document.getElementById('dta').value += xmlresponse.getElementsByTagName('SPECTRUM')[0].firstChild.data;
+  document.getElementById('dta').value += "\n---------------------------\n";
+  document.getElementById('dta').value += xmlresponse.getElementsByTagName('DTA')[0].firstChild.data;
+  document.getElementById("sform").submit();
+}
+
+</script>
+
+</head>
+
+<body onLoad="retrieveDta();">
+<h1>Auto-Post Spectrum for SpectraST Search at PeptideAtlas</h1>
+
+<p>Attempting to retrieve dta file for submission to SpectraST...</p>
+
+
+<div id="errors">If you see this after more than a few seconds, there might be a JavaScript error. Please make sure you have JavaScript enabled. (IE users should also have ActiveX enabled).</div>
+
+<hr>
+
+<form id="sform" enctype="application/x-www-form-urlencoded" method="post" action="http://www.peptideatlas.org/spectrast/index.php">
+<input name="Action" id="Action" type="hidden" value="autoSubmit">
+<input name="src"    id="src"    type="hidden" value="TPP">
+<input name="splib"  id="splib"  type="hidden" value="human_consensus.splib">
+<input name="dta"    id="dta"    type="hidden" value="">
+<input name="mztol"  id="mztol"  type="hidden" value="3.0">
+</form>
+
+</body>
+</html>

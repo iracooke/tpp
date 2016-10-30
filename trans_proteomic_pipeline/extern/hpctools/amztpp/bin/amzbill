@@ -1,0 +1,45 @@
+#!/tools/bin/perl
+#
+# Download latest Amazon Billing reports as csv files
+#
+use strict;
+use WWW::Mechanize;
+
+$|=1;
+
+my $FORM_URL = "https://aws-portal.amazon.com/gp/aws/developer/account/index.html?ie=UTF8&action=usage-report";
+
+my $name     = $ARGV[0] ? "$ARGV[0]." : "";
+my $email    = $ENV{AWS_EMAIL} or die "missing AWS_EMAIL email";
+my $password = $ENV{AWS_PASS}  or die "missing AWS_PASS password";
+my $fmt = "csv";   # or "xml"
+
+print "Signing in:\n";
+my $mech = WWW::Mechanize->new( agent => "Mozilla/5.0", cookie_jar => {}, timeout => 360 );
+$mech->get( $FORM_URL );
+die $mech->status() unless $mech->success();
+
+$mech->submit_form( form_name => 'signIn',
+                    fields => { email => $email, password => $password } );
+die $mech->status() unless $mech->success();
+
+my @services = qw(AmazonS3 AmazonEC2 AWSQueueService);
+for my $s ( @services )
+   {
+   print "Selecting service...$s\n";
+#$mech->save_content( 'foo1.html' );
+#$mech->dump_forms();
+   $mech->form_name( "usageReportForm" );
+   $mech->field( productCode => [$s] );
+   $mech->submit();
+   die $mech->status() unless $mech->success();
+#$mech->save_content( 'foo2.html' );
+
+   print "Building report.....$s\n";
+   $mech->form_name( "usageReportForm" );
+   $mech->click( "download-usage-report-$fmt" );
+   die $mech->status() unless $mech->success();
+   $mech->save_content( "${name}${s}.csv" );
+
+   $mech->get( $FORM_URL );
+   }

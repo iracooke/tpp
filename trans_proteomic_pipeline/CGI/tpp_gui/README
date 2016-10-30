@@ -1,0 +1,69 @@
+
+Installing PETUNIA: the TPP GUI
+
+The Cygwin installer will take care of step 1, and comes with
+the 'guest' account enabled. To create other accounts, please
+see step 2B.
+
+
+1. Set up GUI files and directories:
+
+   Copy/create the following files and directories to C:\Inetpub\tpp-bin\
+	tpp_gui.pl
+	tpp_gui.css
+
+	images/isb_logo.gif
+	images/logo_anim.gif
+	images/spc_logo.png
+	images/nhlbi.jpg
+
+   Also, create the following directories:
+	users/
+	users/guest/  [read/writeable by all]
+
+
+2. Set up the guest account:
+
+   A. Under the tpp-bin/users/guest/ directory, run:
+	cygwin> crypt isbTPPspc guest > .password
+
+   B. In order to add a different username, do the following:
+	a. Create a tpp-bin/users/NEWUSER/   directory
+	b. cd to it (under Cygwin):   cd users/NEWUSER/
+	c. run:  crypt isbTPPspc NEWPASSWORD > .password
+
+   nB. "isbTPPspc" is the crypt key; this can be changed, of course
+
+
+3. Set up a data directory:
+
+   Create a world read/write-able directory at:
+	C:\Intetpub\wwwroot\ISB\data\
+
+   Place all data under this, preferrably in separate directories
+   (with full permissions, as usual...)
+
+   This location is also configurable, but most SPC Tools expect data to
+   be under the wwwroot/  directory.
+
+
+4. Access it!   http://localhost/tpp-bin/tpp_gui.pl
+
+   Log in as guest/guest, or whatever account you created in step 2.
+
+
+
+5. Files to keep track of:
+	/tmp/tpp_web.log       has most debug and request info
+	/tmp/cmd_<SESSION_ID>  has command output
+
+   The session id can be found by looking under tpp-bin/users/USER/
+   There should be a session_<SESSION_ID> file. These don't go away
+   yet; need to fix that.
+
+
+6. Known issues (getting worked on):
+	- Some advanced options missing
+	- No fancy graphics, yet.
+
+

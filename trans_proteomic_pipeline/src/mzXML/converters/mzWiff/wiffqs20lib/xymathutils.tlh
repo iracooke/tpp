@@ -1,0 +1,612 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.00.50727.42 (e4fc9c52).
+//
+// c:\sashimi\trunk\trans_proteomic_pipeline\src\mzxml\converters\mzwiff\wiffqs20lib\xymathutils.tlh
+//
+// C++ source equivalent of Win32 type library ..\\libs\\analystqs-2.0\\XYMathUtils.dll
+// compiler-generated file created 02/19/09 at 14:06:13 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+namespace AnalystQS20 {
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("4e591178-3595-459a-bc25-12c6a2d8671b"))
+/* LIBID */ __XYMathUtilsLib;
+struct /* coclass */ XYMathUtilsVersionObject;
+struct __declspec(uuid("80c2960f-04d7-4164-aea5-46a0e54c15e7"))
+/* dual interface */ IXYMathUtilsVersionObject;
+struct /* coclass */ GeneralXYMathUtils;
+struct __declspec(uuid("7e6bbaef-e9b7-4c13-8ffc-064d41fa0267"))
+/* dual interface */ IGeneralXYMathUtils;
+struct /* coclass */ SimpleXYMathUtils;
+struct __declspec(uuid("69ac7756-6e7d-4355-ab48-d86805520a0c"))
+/* dual interface */ ISimpleXYMathUtils;
+struct /* coclass */ FFTXYMathUtils;
+struct __declspec(uuid("7a734883-de41-4856-adf4-6b57f2aec6c8"))
+/* dual interface */ IFFTXYMathUtils;
+enum PartOfFFTType;
+struct /* coclass */ MatLabUtils;
+struct __declspec(uuid("6f4ea8a2-bed1-46d9-b929-e855bca3697b"))
+/* dual interface */ IMatLabUtils;
+struct /* coclass */ ProcessingXYMathUtils;
+struct __declspec(uuid("350e254c-6514-43ae-90ca-c58c7404faa6"))
+/* dual interface */ IProcessingXYMathUtils;
+struct /* coclass */ XYBinary;
+struct __declspec(uuid("1c3cd229-ca1d-4c2f-9caa-c788a932c26b"))
+/* dual interface */ IXYBinary;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IXYMathUtilsVersionObject, __uuidof(IXYMathUtilsVersionObject));
+_COM_SMARTPTR_TYPEDEF(IGeneralXYMathUtils, __uuidof(IGeneralXYMathUtils));
+_COM_SMARTPTR_TYPEDEF(ISimpleXYMathUtils, __uuidof(ISimpleXYMathUtils));
+_COM_SMARTPTR_TYPEDEF(IFFTXYMathUtils, __uuidof(IFFTXYMathUtils));
+_COM_SMARTPTR_TYPEDEF(IMatLabUtils, __uuidof(IMatLabUtils));
+_COM_SMARTPTR_TYPEDEF(IProcessingXYMathUtils, __uuidof(IProcessingXYMathUtils));
+_COM_SMARTPTR_TYPEDEF(IXYBinary, __uuidof(IXYBinary));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("326e1d77-014f-424a-a093-0f660ef5cf12"))
+XYMathUtilsVersionObject;
+    // [ default ] interface IXYMathUtilsVersionObject
+
+struct __declspec(uuid("80c2960f-04d7-4164-aea5-46a0e54c15e7"))
+IXYMathUtilsVersionObject : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    double GetLibraryVersion ( );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_GetLibraryVersion (
+        /*[out,retval]*/ double * version ) = 0;
+};
+
+struct __declspec(uuid("011ab7cd-51fb-4bf1-a81f-9cf9e74ba9ac"))
+GeneralXYMathUtils;
+    // [ default ] interface IGeneralXYMathUtils
+
+struct __declspec(uuid("7e6bbaef-e9b7-4c13-8ffc-064d41fa0267"))
+IGeneralXYMathUtils : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT AdjustXValues (
+        IUnknown * xyData,
+        double multFactor,
+        double addFactor,
+        long startIndex,
+        long endIndex );
+    HRESULT AdjustYValues (
+        IUnknown * xyData,
+        double multFactor,
+        double addFactor,
+        long startIndex,
+        long endIndex );
+    HRESULT AddMissingZeros (
+        IUnknown * xyData,
+        double startX,
+        double endX,
+        double stepX );
+    HRESULT AddMissingZerosTOF (
+        IUnknown * xyData,
+        double startMass,
+        double endMass,
+        double calA,
+        double cal2,
+        double stepTime );
+    HRESULT MakeEquallySpaced (
+        IUnknown * xyData );
+    HRESULT Normalise (
+        IUnknown * xyData,
+        double normaliseTo );
+    HRESULT ReplaceWithOnes (
+        IUnknown * xyData,
+        double threshold );
+    HRESULT PowerWeightIntensities (
+        IUnknown * xyData,
+        double power );
+    HRESULT Correlate (
+        IUnknown * xyData1,
+        IUnknown * xyData2,
+        IUnknown * xyDataCorrelated );
+    HRESULT ExtractRange (
+        IUnknown * xyData,
+        long startIndex,
+        long endIndex,
+        IUnknown * extractedData );
+    HRESULT Pad (
+        IUnknown * xyData,
+        double padValue,
+        long numToAdd );
+    HRESULT Multiply (
+        IUnknown * xyData1,
+        IUnknown * xyData2,
+        IUnknown * xyDataMultiplied );
+    HRESULT Divide (
+        IUnknown * xyData1,
+        IUnknown * xyData2,
+        double valueIfDiv0,
+        IUnknown * xyDataDivided );
+    HRESULT ThresholdData (
+        IUnknown * xyData,
+        double threshold );
+    HRESULT WilmCorrelation (
+        IUnknown * xyData,
+        double halfWindow,
+        short numPasses,
+        IUnknown * xyDataCorrelated );
+    HRESULT SortXY (
+        IUnknown * xyData,
+        long ascending );
+    HRESULT NaturalLogY (
+        IUnknown * xyData,
+        double minY );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_AdjustXValues (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double multFactor,
+        /*[in]*/ double addFactor,
+        /*[in]*/ long startIndex,
+        /*[in]*/ long endIndex ) = 0;
+      virtual HRESULT __stdcall raw_AdjustYValues (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double multFactor,
+        /*[in]*/ double addFactor,
+        /*[in]*/ long startIndex,
+        /*[in]*/ long endIndex ) = 0;
+      virtual HRESULT __stdcall raw_AddMissingZeros (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double startX,
+        /*[in]*/ double endX,
+        /*[in]*/ double stepX ) = 0;
+      virtual HRESULT __stdcall raw_AddMissingZerosTOF (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double startMass,
+        /*[in]*/ double endMass,
+        /*[in]*/ double calA,
+        /*[in]*/ double cal2,
+        /*[in]*/ double stepTime ) = 0;
+      virtual HRESULT __stdcall raw_MakeEquallySpaced (
+        /*[in]*/ IUnknown * xyData ) = 0;
+      virtual HRESULT __stdcall raw_Normalise (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double normaliseTo ) = 0;
+      virtual HRESULT __stdcall raw_ReplaceWithOnes (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double threshold ) = 0;
+      virtual HRESULT __stdcall raw_PowerWeightIntensities (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double power ) = 0;
+      virtual HRESULT __stdcall raw_Correlate (
+        /*[in]*/ IUnknown * xyData1,
+        /*[in]*/ IUnknown * xyData2,
+        /*[in]*/ IUnknown * xyDataCorrelated ) = 0;
+      virtual HRESULT __stdcall raw_ExtractRange (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ long startIndex,
+        /*[in]*/ long endIndex,
+        /*[in]*/ IUnknown * extractedData ) = 0;
+      virtual HRESULT __stdcall raw_Pad (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double padValue,
+        /*[in]*/ long numToAdd ) = 0;
+      virtual HRESULT __stdcall raw_Multiply (
+        /*[in]*/ IUnknown * xyData1,
+        /*[in]*/ IUnknown * xyData2,
+        /*[in]*/ IUnknown * xyDataMultiplied ) = 0;
+      virtual HRESULT __stdcall raw_Divide (
+        /*[in]*/ IUnknown * xyData1,
+        /*[in]*/ IUnknown * xyData2,
+        /*[in]*/ double valueIfDiv0,
+        /*[in]*/ IUnknown * xyDataDivided ) = 0;
+      virtual HRESULT __stdcall raw_ThresholdData (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double threshold ) = 0;
+      virtual HRESULT __stdcall raw_WilmCorrelation (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double halfWindow,
+        /*[in]*/ short numPasses,
+        /*[in]*/ IUnknown * xyDataCorrelated ) = 0;
+      virtual HRESULT __stdcall raw_SortXY (
+        /*[in]*/ IUnknown * xyData,
+        long ascending ) = 0;
+      virtual HRESULT __stdcall raw_NaturalLogY (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double minY ) = 0;
+};
+
+struct __declspec(uuid("df2a77cb-a99b-4ee4-80ff-93e2605422ba"))
+SimpleXYMathUtils;
+    // [ default ] interface ISimpleXYMathUtils
+
+struct __declspec(uuid("69ac7756-6e7d-4355-ab48-d86805520a0c"))
+ISimpleXYMathUtils : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT GetYStatistics (
+        IUnknown * xyData,
+        double * sumY,
+        double * sumY2,
+        double * sumAbsY );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_GetYStatistics (
+        /*[in]*/ IUnknown * xyData,
+        /*[out]*/ double * sumY,
+        /*[out]*/ double * sumY2,
+        /*[out]*/ double * sumAbsY ) = 0;
+};
+
+struct __declspec(uuid("44202006-f1cb-45c6-a63a-abf1181da9e1"))
+FFTXYMathUtils;
+    // [ default ] interface IFFTXYMathUtils
+
+enum PartOfFFTType
+{
+    kFFTRealPart = 0,
+    kFFTImaginaryPart = 1,
+    kFFTMagnitude = 2
+};
+
+struct __declspec(uuid("7a734883-de41-4856-adf4-6b57f2aec6c8"))
+IFFTXYMathUtils : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT ForwardFFT (
+        IUnknown * xyData,
+        IUnknown * fftData );
+    HRESULT ReverseFFT (
+        IUnknown * fftData,
+        enum PartOfFFTType fftType,
+        VARIANT_BOOL doFlip,
+        IUnknown * xyData );
+    HRESULT GetOnePartOfFFT (
+        IUnknown * fftData,
+        enum PartOfFFTType fftType,
+        IUnknown * xyData );
+    HRESULT ConjugateFFT (
+        IUnknown * fftData );
+    HRESULT MultiplyFFT (
+        IUnknown * fftData1,
+        IUnknown * fftData2,
+        IUnknown * fftDataMultiplied );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_ForwardFFT (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ IUnknown * fftData ) = 0;
+      virtual HRESULT __stdcall raw_ReverseFFT (
+        /*[in]*/ IUnknown * fftData,
+        /*[in]*/ enum PartOfFFTType fftType,
+        /*[in]*/ VARIANT_BOOL doFlip,
+        /*[in]*/ IUnknown * xyData ) = 0;
+      virtual HRESULT __stdcall raw_GetOnePartOfFFT (
+        /*[in]*/ IUnknown * fftData,
+        /*[in]*/ enum PartOfFFTType fftType,
+        /*[in]*/ IUnknown * xyData ) = 0;
+      virtual HRESULT __stdcall raw_ConjugateFFT (
+        /*[in]*/ IUnknown * fftData ) = 0;
+      virtual HRESULT __stdcall raw_MultiplyFFT (
+        /*[in]*/ IUnknown * fftData1,
+        /*[in]*/ IUnknown * fftData2,
+        /*[in]*/ IUnknown * fftDataMultiplied ) = 0;
+};
+
+struct __declspec(uuid("07a8679c-d371-4448-a081-b2f50f87833a"))
+MatLabUtils;
+    // [ default ] interface IMatLabUtils
+
+struct __declspec(uuid("6f4ea8a2-bed1-46d9-b929-e855bca3697b"))
+IMatLabUtils : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(put=PutMassListMatrixName))
+    _bstr_t MassListMatrixName;
+    __declspec(property(put=PutScanTimeMatrixName))
+    _bstr_t ScanTimeMatrixName;
+    __declspec(property(put=PutFileNameMatrixName))
+    _bstr_t FileNameMatrixName;
+    __declspec(property(put=PutIntensityMatrixName))
+    _bstr_t IntensityMatrixName;
+    __declspec(property(put=PutSaveFileNameMatrix))
+    long SaveFileNameMatrix;
+    __declspec(property(put=PutUseScanTimeNotScanNumber))
+    long UseScanTimeNotScanNumber;
+    __declspec(property(put=PutWavelengthListMatrixName))
+    _bstr_t WavelengthListMatrixName;
+    __declspec(property(put=PutSparseIntensityMatrixName))
+    _bstr_t SparseIntensityMatrixName;
+    __declspec(property(put=PutIndexMatrixName))
+    _bstr_t IndexMatrixName;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT ConvertToMatLab (
+        IUnknown * fmanChromData,
+        double startMass,
+        double endMass,
+        double stepMass,
+        _bstr_t matLabFilename );
+    void PutMassListMatrixName (
+        _bstr_t _arg1 );
+    void PutScanTimeMatrixName (
+        _bstr_t _arg1 );
+    void PutFileNameMatrixName (
+        _bstr_t _arg1 );
+    void PutIntensityMatrixName (
+        _bstr_t _arg1 );
+    void PutSaveFileNameMatrix (
+        long _arg1 );
+    void PutUseScanTimeNotScanNumber (
+        long _arg1 );
+    HRESULT ConvertDADToMatLab (
+        IUnknown * fmanChromData,
+        double startWavelength,
+        double endWavelength,
+        double stepWavelength,
+        _bstr_t matLabFilename );
+    void PutWavelengthListMatrixName (
+        _bstr_t _arg1 );
+    void PutSparseIntensityMatrixName (
+        _bstr_t _arg1 );
+    void PutIndexMatrixName (
+        _bstr_t _arg1 );
+    HRESULT ConvertToSparseMatLab (
+        IUnknown * fmanChromData,
+        double threshold,
+        _bstr_t matLabFilename );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_ConvertToMatLab (
+        /*[in]*/ IUnknown * fmanChromData,
+        /*[in]*/ double startMass,
+        /*[in]*/ double endMass,
+        /*[in]*/ double stepMass,
+        /*[in]*/ BSTR matLabFilename ) = 0;
+      virtual HRESULT __stdcall put_MassListMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_ScanTimeMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_FileNameMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_IntensityMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_SaveFileNameMatrix (
+        /*[in]*/ long _arg1 ) = 0;
+      virtual HRESULT __stdcall put_UseScanTimeNotScanNumber (
+        /*[in]*/ long _arg1 ) = 0;
+      virtual HRESULT __stdcall raw_ConvertDADToMatLab (
+        /*[in]*/ IUnknown * fmanChromData,
+        /*[in]*/ double startWavelength,
+        /*[in]*/ double endWavelength,
+        /*[in]*/ double stepWavelength,
+        /*[in]*/ BSTR matLabFilename ) = 0;
+      virtual HRESULT __stdcall put_WavelengthListMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_SparseIntensityMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall put_IndexMatrixName (
+        /*[in]*/ BSTR _arg1 ) = 0;
+      virtual HRESULT __stdcall raw_ConvertToSparseMatLab (
+        /*[in]*/ IUnknown * fmanChromData,
+        /*[in]*/ double threshold,
+        /*[in]*/ BSTR matLabFilename ) = 0;
+};
+
+struct __declspec(uuid("46a0259c-5194-47bb-8af3-32770ad33f92"))
+ProcessingXYMathUtils;
+    // [ default ] interface IProcessingXYMathUtils
+
+struct __declspec(uuid("350e254c-6514-43ae-90ca-c58c7404faa6"))
+IProcessingXYMathUtils : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT Centroid (
+        IUnknown * xyData,
+        double heightFraction,
+        double mergeDistance,
+        long reportIntensityNotArea,
+        IUnknown * centroidData );
+    HRESULT AssignChargeStates (
+        IUnknown * centroidData,
+        double massTolerance );
+    HRESULT Centroid2 (
+        IUnknown * xyData,
+        double heightFraction,
+        double mergeDistance,
+        IUnknown * centroidData );
+    HRESULT Centroid2WithStartsAndStops (
+        IUnknown * xyData,
+        double heightFraction,
+        double mergeDistance,
+        IUnknown * centroidData,
+        IUnknown * startsAndStopsData );
+    HRESULT Centroid2PPM (
+        IUnknown * xyData,
+        double heightFraction,
+        double mergeDistance,
+        IUnknown * centroidData );
+    HRESULT Centroid2WithStartsAndStopsPPM (
+        IUnknown * xyData,
+        double heightFraction,
+        double mergeDistance,
+        IUnknown * centroidData,
+        IUnknown * startsAndStopsData );
+    HRESULT SavitzkyGolaySmooth (
+        IUnknown * xyData,
+        short halfWindow );
+    HRESULT SetDataEventsStatus (
+        IUnknown * xyData,
+        long status );
+    HRESULT CentroidNew (
+        IUnknown * xyData,
+        IUnknown * centroidData );
+    HRESULT GetCentroidNewItem (
+        long index,
+        double * mz,
+        double * intensity,
+        double * width,
+        short * charge,
+        long * isMonoPeak,
+        double * monoMZ,
+        double * startMZ,
+        double * stopMZ );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_Centroid (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double heightFraction,
+        /*[in]*/ double mergeDistance,
+        /*[in]*/ long reportIntensityNotArea,
+        /*[in]*/ IUnknown * centroidData ) = 0;
+      virtual HRESULT __stdcall raw_AssignChargeStates (
+        /*[in]*/ IUnknown * centroidData,
+        /*[in]*/ double massTolerance ) = 0;
+      virtual HRESULT __stdcall raw_Centroid2 (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double heightFraction,
+        /*[in]*/ double mergeDistance,
+        /*[in]*/ IUnknown * centroidData ) = 0;
+      virtual HRESULT __stdcall raw_Centroid2WithStartsAndStops (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double heightFraction,
+        /*[in]*/ double mergeDistance,
+        /*[in]*/ IUnknown * centroidData,
+        /*[in]*/ IUnknown * startsAndStopsData ) = 0;
+      virtual HRESULT __stdcall raw_Centroid2PPM (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double heightFraction,
+        /*[in]*/ double mergeDistance,
+        /*[in]*/ IUnknown * centroidData ) = 0;
+      virtual HRESULT __stdcall raw_Centroid2WithStartsAndStopsPPM (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ double heightFraction,
+        /*[in]*/ double mergeDistance,
+        /*[in]*/ IUnknown * centroidData,
+        /*[in]*/ IUnknown * startsAndStopsData ) = 0;
+      virtual HRESULT __stdcall raw_SavitzkyGolaySmooth (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ short halfWindow ) = 0;
+      virtual HRESULT __stdcall raw_SetDataEventsStatus (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ long status ) = 0;
+      virtual HRESULT __stdcall raw_CentroidNew (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ IUnknown * centroidData ) = 0;
+      virtual HRESULT __stdcall raw_GetCentroidNewItem (
+        /*[in]*/ long index,
+        /*[out]*/ double * mz,
+        /*[out]*/ double * intensity,
+        /*[out]*/ double * width,
+        /*[out]*/ short * charge,
+        /*[out]*/ long * isMonoPeak,
+        /*[out]*/ double * monoMZ,
+        /*[out]*/ double * startMZ,
+        /*[out]*/ double * stopMZ ) = 0;
+};
+
+struct __declspec(uuid("ddcb37c8-bf73-4ec5-9ad2-edc2087b30c0"))
+XYBinary;
+    // [ default ] interface IXYBinary
+
+struct __declspec(uuid("1c3cd229-ca1d-4c2f-9caa-c788a932c26b"))
+IXYBinary : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    _bstr_t ConvertToBinary (
+        IUnknown * xyData,
+        long swapBytes );
+    HRESULT ConvertFromBinary (
+        _bstr_t binaryData,
+        long swapBytes,
+        IUnknown * xyData );
+    HRESULT Swap4Bytes (
+        _bstr_t binaryData );
+    HRESULT AddBinary (
+        _bstr_t binary1,
+        _bstr_t binary2,
+        BSTR * binarySum,
+        float tolerance );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_ConvertToBinary (
+        /*[in]*/ IUnknown * xyData,
+        /*[in]*/ long swapBytes,
+        /*[out,retval]*/ BSTR * binaryData ) = 0;
+      virtual HRESULT __stdcall raw_ConvertFromBinary (
+        /*[in]*/ BSTR binaryData,
+        /*[in]*/ long swapBytes,
+        /*[in]*/ IUnknown * xyData ) = 0;
+      virtual HRESULT __stdcall raw_Swap4Bytes (
+        /*[in]*/ BSTR binaryData ) = 0;
+      virtual HRESULT __stdcall raw_AddBinary (
+        BSTR binary1,
+        BSTR binary2,
+        BSTR * binarySum,
+        float tolerance ) = 0;
+};
+
+//
+// Wrapper method implementations
+//
+
+#include "wiffqs20lib\xymathutils.tli"
+
+} // namespace AnalystQS20
+
+#pragma pack(pop)

@@ -1,0 +1,210 @@
+#!/tools/bin/perl
+#
+# Copyright (C) 2013 by Joe Slagel
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+#
+# Institute for Systems Biology
+# 401 Terry Ave N
+# Seattle, WA  98109  USA
+#
+# $Id: amztppd 6285 2013-09-20 16:50:03Z slagelwa $
+#
+use strict;
+use warnings;
+
+use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
+use WWW::Mechanize;
+
+use TPP::AWS;
+
+
+#-- @GLOBALS ------------------------------------------------------------------#
+
+our $REVISION = (q$Revision: 6285 $ =~ /(\d+)/g)[0] || '???'; 
+
+my $prog = basename($0);    # Program name
+my %opts;                   # Program invocation options
+
+my $service;
+
+my $FORM_URL = "https://aws-portal.amazon.com/gp/aws/developer/account/index.html?ie=UTF8&action=usage-report";
+my @SERVICES = qw( AmazonEC2 AmazonSNS AWSQueueService AmazonS3 AmazonVPC );
+
+
+#-- @MAIN ---------------------------------------------------------------------#
+
+$| = 1;                     # Flush STDOUT automatically
+{
+   parseOptions();
+
+   my $fmt = $opts{xml} ? 'xml' : 'csv';
+   my $service = $ARGV[0];
+   pod2usage( "$prog: too few/many arguments") unless ( @ARGV == 1 );
+   pod2usage( "$prog: unrecognized service" )  if ( !grep /^$service$/, @SERVICES );
+
+   # AWS Account
+   my $email    = $opts{'aws-email'}    || $ENV{AWS_EMAIL};
+   my $password = $opts{'aws-password'} || $ENV{AWS_PASSWORD} || $ENV{AWS_PASS};
+   unless ( $email && $password )
+      {
+      die( "$prog: missing AWS account email or password" );
+      }
+
+   print STDERR "Signing in:\n" if ( $opts{verbose} );
+   my $mech = WWW::Mechanize->new( agent => "Mozilla/5.0", cookie_jar => {}, 
+                                   timeout => 360 );
+   $mech->get( $FORM_URL );
+   die $mech->status() unless $mech->success();
+
+   $mech->submit_form( form_name => 'signIn',
+                       fields => { email => $email, password => $password } );
+   die $mech->status() unless $mech->success();
+
+   print STDERR "Selecting service...$service\n" if ( $opts{verbose} );
+#$mech->save_content( 'foo1.html' );
+#$mech->dump_forms();
+   $mech->form_name( "usageReportForm" );
+   $mech->field( productCode => [$service] );
+   $mech->submit();
+   die $mech->status() unless $mech->success();
+#$mech->save_content( 'foo2.html' );
+
+   print STDERR "Requesting report.....$service\n" if ( $opts{verbose} );
+   $mech->form_name( "usageReportForm" );
+   $mech->click( "download-usage-report-$fmt" );
+   die $mech->status() unless $mech->success();
+   print $mech->content();
+
+   exit( 0 );
+}
+
+
+#-- @SUBROUTINES ------------------------------------------------------------#
+
+#
+# Processes the command line arguments and initialize the global %opts
+# variable.
+#
+sub parseOptions
+   {
+   # Get options...
+   my @flags;
+   push @flags, qw( help|h|? man version|V verbose|v ); # Std flags
+   push @flags, qw( aws-email=s aws-password=s );       # AWS credentials
+   push @flags, qw( csv xml );                          # Output formats
+   Getopt::Long::Configure( "bundling" );
+   GetOptions( \%opts, @flags ) || pod2usage(2);
+
+   # Standard flags
+   printVersion()               if ( $opts{version} );
+   pod2usage(2)                 if ( $opts{help} );
+   pod2usage( -verbose => 2 )   if ( $opts{man} );
+   }
+
+#
+# Output program version
+#
+sub printVersion
+   {
+   print "$prog: version $TPP::AWS::VERSION (r$::REVISION)\n";
+   exit(0);
+   }
+
+
+#-- @DOCUMENTATION ----------------------------------------------------------#
+
+__END__
+
+=head1 NAME
+
+amzbill - download the latest usage report for Amazon Web Services
+
+=head1 SYNOPSIS
+
+amzusage [options] <service>
+
+ Options:
+   -h, --help               print this help
+   --man                    full documentation
+   -V, --version            print version information and exit
+   -v, --verbose            print verbose information when running
+
+   --aws-email    <email>   AWS account email
+   --aws-password <pass>    AWS account password
+   --csv                    Output CSV formatted report
+   --xml                    Output XML formatted report
+
+ Service Choices:
+   AmazonEC2|AmazonSNS|AWSQueueService|AmazonS3|AmazonVPC
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<amzusage> is a program to query Amazon Web Services and output the latest
+usage report on an account for a specified Amazon Web Service.
+
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Display the full man page documentation and exit.
+
+=item B<--version>
+
+Displays the program version.
+
+=item B<--aws-email EMAIL>
+
+Specify the AWS account email for the account to query.  Also can be specified
+using the envirnoment variable AWS_EMAIL.
+
+=item B<--aws-password PASSWORD>
+
+Specify the AWS account password associated with the account email provided.
+Also can be specified using the environment variable AWS_PASSWORD.
+
+=item B<--csv>
+
+Output the report as a csv formatted file. (DEFAULT)
+
+=item B<--xml>
+
+Output the report as a xml formatted file.
+
+=back
+
+=head1 SEE ALSO
+
+Amazon Web Service's usage report form at L<https://portal.aws.amazon.com/gp/aws/developer/account?action=usage-report>
+
+=cut

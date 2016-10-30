@@ -1,0 +1,8 @@
+
+                              gzstream
+      C++ iostream classes wrapping the zlib compression library.
+===========================================================================
+
+    See index.html for documentation and installation instructions.
+
+NOTE: this copy of the gzstream code has been altered by bpratt of Insilicos LLC: a couple of tweaks for VC8 and to support different compression levels, including none at all (write a regular file instead of a gzip file).

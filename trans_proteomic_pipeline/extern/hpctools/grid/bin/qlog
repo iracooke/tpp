@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+#
+# Simple script that looks up the combined STDOUT+STDERR log file for a
+# Grid Engine job and outputs it to the terminal
+#
+
+# -- Main ---------------------------------------------------------------------
+
+PROG=$(basename $0)
+
+if [ $# -lt 1 ]; then
+  echo "Usage: $PROG [options to tail] <sge_job_number(s)>"
+  echo "Print the content of a Grid Engine job's log file"
+  exit
+fi
+
+while [ "$1" ]; do
+   LOG=$(qstat -j $1 | grep ^stdout_path_list | perl -pe 's/.*://')
+   DIR=$(qstat -j $1 | grep ^sge_o_workdir | perl -pe 's/.*:\s*//')
+   if [ "$(basename $LOG)" == "$LOG" ]; then
+      LOG="$DIR/$LOG"
+   fi
+   if [ ! -f "$LOG" ]; then
+      echo "$PROG: $LOG file not found" >&2 
+   fi
+
+   echo "==> $LOG <=="; echo
+   cat ${LOG}
+   shift
+done   

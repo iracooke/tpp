@@ -1,0 +1,250 @@
+#
+# NAME
+#
+# Generic Template for omssa parameter files
+#
+# DESCRIPTION
+#
+# This is a parameters file for the qomssa command used to run omssa MS/MS
+# peptide spectra searches  on a cluster.  The format of the file is very
+# simple. Each parameter is specified on a single line using the same unix
+# argument style used by the actual omssacl program.  Any text following
+# the hash symbol('#') to the end of the line is ignored, allowing for 
+# comments to be included in the file.
+#
+# For convenience all of the allowable omssa parameters have already been 
+# provided in this file along with a short description for each. To use
+# a parameter simply uncomment the line the parameter is on.  Parameters
+# that require a value will be specified by the type of value, such as
+# <Integer> for integer values, <Real> for real values,  or <String>
+# for string values.
+#
+# Note that not all arguments accepted by omssacl should be specified in this
+# file.  In particular you'll want to avoid the help, input, and output 
+# arguments such as "-h", "-help" "-f", "-el", etc..
+#
+
+# PARAMETERS
+
+# Program's configuration (registry) data file
+#-conffile <File_In>
+
+# Blast sequence library to search. Do not include .p* filename suffixes.
+# Default = `nr'
+# -d <String>
+
+# Use memory mapped sequence libraries.
+#-umm
+
+# Include spectra and search params in search results
+#-w
+
+# Product ion m/z tolerance in Da
+# Default = `0.8'
+#-to <Real>
+
+# Precursor ion m/z tolerance in Da
+# Default = `2.0'
+#-te <Real>
+
+# Product ion search type (0 = mono, 1 = avg, 2 = N15, 3 = exact)
+# Default = `0'
+#-tom <Integer>
+
+# Precursor ion search type (0 = mono, 1 = avg, 2 = N15, 3 = exact)
+# Default = `0'
+#-tem <Integer>
+
+# Charge dependency of precursor mass tolerance (0 = none, 1 = linear)
+# Default = `0'
+#-tez <Integer>
+
+# Automatic mass tolerance adjustment fraction
+# Default = `1.0'
+#-ta <Real>
+
+# Threshold in Da above which the mass of neutron should be added in exact
+# mass search
+# Default = `1446.94'
+#-tex <Real>
+
+# Id numbers of ions to search (comma delimited, no spaces)
+# Default = `1,4'
+#-i <String>
+
+# Low intensity cutoff as a fraction of max peak
+# Default = `0.0'
+#-cl <Real>
+
+# High intensity cutoff as a fraction of max peak
+# Default = `0.2'
+#-ch <Real>
+
+# Intensity cutoff increment as a fraction of max peak
+# Default = `0.0005'
+#-ci <Real>
+
+# Eliminate charge reduced precursors in spectra (0=no, 1=yes)
+# Default = `0'
+#-cp <Integer>
+
+# Number of missed cleavages allowed
+# Default = `1'
+#-v <Integer>
+
+# Comma delimited list of taxids to search (0 = all)
+# Default = `0'
+#-x <String>
+
+# Single charge window in Da
+# Default = `20'
+#-w1 <Integer>
+
+# Double charge window in Da
+# Default = `14'
+#-w2 <Integer>
+
+# Number of peaks allowed in single charge window
+# Default = `2'
+#-h1 <Integer>
+
+# Number of peaks allowed in double charge window
+# Default = `2'
+#-h2 <Integer>
+
+# Maximum number of hits retained per precursor charge state per spectrum
+# Default = `30'
+#-hl <Integer>
+
+# Number of m/z values corresponding to the most intense peaks that must
+# Include one match to the theoretical peptide
+# Default = `6'
+#-ht <Integer>
+
+# The minimum number of m/z matches a sequence library peptide must have for
+# The hit to the peptide to be recorded
+# Default = `2'
+#-hm <Integer>
+
+# The minimum number of m/z values a spectrum must have to be searched
+# Default = `4'
+#-hs <Integer>
+
+# The maximum evalue allowed in the hit list
+# Default = `1'
+#-he <Real>
+
+# Comma delimited (no spaces) list of id numbers for fixed modifications
+# Default = `'
+#-mf <String>
+
+#-mv <String>
+# Comma delimited (no spaces) list of id numbers for variable modifications
+# Default = `'
+
+# N-term methionine should not be cleaved
+#-mnm
+
+# The maximum number of mass ladders to generate per database peptide
+# Default = `128'
+#-mm <Integer>
+
+# Id number of enzyme to use
+# Default = `0'
+#-e <Integer>
+
+# Maximum precursor charge to search when not 1+
+# Default = `3'
+#-zh <Integer>
+
+# Minimum precursor charge to search when not 1+
+# Default = `1'
+#-zl <Integer>
+
+# Maximum product charge to search
+# Default = `2'
+#-zoh <Integer>
+
+# Minimum precursor charge to start considering multiply charged products
+# Default = `3'
+#-zt <Integer>
+
+# Fraction of peaks below precursor used to determine if spectrum is charge 1
+# Default = `0.95'
+#-z1 <Real>
+
+# Should charge plus one be determined algorithmically? (1=yes)
+# Default = `1'
+#-zc <Integer>
+
+# How should precursor charges be determined? (1=believe the input file,
+# 2=use a range)
+# Default = `2'
+#-zcc <Integer>
+
+# Minimum number of precursors that match a spectrum
+# Default = `1'
+#-pc <Integer>
+
+# Should first forward (b1) product ions be in search (1=no)
+# Default = `1'
+#-sb1 <Integer>
+
+# Should c terminus ions be searched (1=no)
+# Default = `0'
+#-sct <Integer>
+
+# Max number of ions in each series being searched (0=all)
+# Default = `100'
+#-sp <Integer>
+
+# Turn off correlation correction to score (1=off, 0=use correlation)
+# Default = `0'
+#-scorr <Integer>
+
+# Probability of consecutive ion (used in correlation correction)
+# Default = `0.5'
+#-scorp <Real>
+
+# Minimum size of peptides for no-enzyme and semi-tryptic searches
+# Default = `4'
+#-no <Integer>
+
+# Maximum size of peptides for no-enzyme and semi-tryptic searches (0=none)
+# Default = `40'
+#-nox <Integer>
+
+# Evalue threshold to include a sequence in the iterative search, 0 = all
+# Default = `0.0'
+#-is <Real>
+
+# Evalue threshold to replace a hit, 0 = only if better
+# Default = `0.0'
+#-ir <Real>
+
+# Evalue threshold to iteratively search a spectrum again, 0 = always
+# Default = `0.01'
+#-ii <Real>
+
+# Id numbers of ion series to apply no product ions at proline rule at (comma
+# delimited, no spaces)
+# Default = `'
+#-p <String>
+
+# File containing modification data
+# Default = `mods.xml'
+#-mx <String>
+
+# File containing user modification data
+# Default = `usermods.xml'
+#-mux <String>
+
+# Number of search threads to use, 0=autodetect
+# Default = `0'
+#-nt <Integer>
+
+# Don't print informational messages
+#-ni
+
+# Use omssa 1.0 scoring
+#-os

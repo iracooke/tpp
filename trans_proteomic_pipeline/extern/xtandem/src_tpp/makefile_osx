@@ -1,0 +1,60 @@
+#makefile for c++ programs
+#change the name of the executable to use for "any" project
+
+#comment out these lines to compile tandem
+#EXECUTABLE = ../bin/p3.exe
+#CXXFLAGS = -O2 -DX_P3 -DOSX_INTEL
+#end comment
+
+# comment out these lines to compile p3
+CXXFLAGS = -O2 -DOSX_INTEL
+EXECUTABLE = ../bin/tandem
+# end comments
+
+LINKCC = $(CXX)
+
+#CXXFLAGS denotes flags for the C++ compiler
+
+CXX = g++
+
+#comment out this line if you want a dynamic link to expat
+#LDFLAGS = -lpthread -L/usr/lib -lm /usr/local/lib/libexpat.a
+
+#comment out this line if you want a static link to expat
+LDFLAGS = -lpthread -L/lib -lm -lexpat
+
+SRCS := $(wildcard *.cpp)
+OBJS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+DEPS := $(patsubst %.o,%.d,$(OBJS))
+
+
+all: $(EXECUTABLE)
+
+#define the components of the program, and how to link them
+#these components are defined as dependencies; that is they must be up-to-date before the code is linked
+
+$(EXECUTABLE): $(DEPS) $(OBJS)
+	$(LINKCC) $(LDFLAGS) $(CXXFLAGS) -o $(EXECUTABLE) $(OBJS)
+	
+#specify the dep files depend on the cpp files
+
+%.d: %.cpp
+	$(CXX) -M $(CXXFLAGS) $< > $@
+	$(CXX) -M $(CXXFLAGS) $< | sed s/\\.o/.d/ > $@
+	
+
+
+clean:
+	-rm $(OBJS) $(EXECUTABLE) $(DEPS) *~
+
+explain:
+	@echo "The following info represents the program:"
+	@echo "Final exec name: $(EXECUTABLE)"
+	@echo "Source files:       $(SRCS)"
+	@echo "Object files:       $(OBJS)"
+	@echo "Dep files:          $(DEPS)"
+
+depend: $(DEPS)
+	@echo "Deps are now up-to-date."
+ 	
+-include $(DEPS)

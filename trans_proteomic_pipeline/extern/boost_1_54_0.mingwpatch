@@ -1,0 +1,36 @@
+Index: boost_1_54_0/tools/build/v2/engine/build.sh
+===================================================================
+--- boost_1_54_0/tools/build/v2/engine/build.sh	(revision 80373)
++++ boost_1_54_0/tools/build/v2/engine/build.sh	(revision 86460)
+@@ -248,5 +248,5 @@
+  command.c compile.c constants.c debug.c execcmd.c frames.c function.c glob.c\
+  hash.c hdrmacro.c headers.c jam.c jambase.c jamgram.c lists.c make.c make1.c\
+- object.c option.c output.c parse.c pathsys.c pathunix.c regexp.c rules.c\
++ object.c option.c output.c parse.c pathsys.c regexp.c rules.c\
+  scan.c search.c subst.c timestamp.c variable.c modules.c strings.c filesys.c\
+  builtins.c class.c cwd.c native.c md5.c w32_getreg.c modules/set.c\
+@@ -255,9 +255,9 @@
+ case $BOOST_JAM_TOOLSET in
+     mingw)
+-    BJAM_SOURCES="${BJAM_SOURCES} execnt.c filent.c"
++    BJAM_SOURCES="${BJAM_SOURCES} execnt.c filent.c pathnt.c"
+     ;;
+ 
+     *)
+-    BJAM_SOURCES="${BJAM_SOURCES} execunix.c fileunix.c"
++    BJAM_SOURCES="${BJAM_SOURCES} execunix.c fileunix.c pathunix.c"
+     ;;
+ esac
+Index: boost_1_54_0/tools/build/v2/engine/build.jam
+===================================================================
+--- boost_1_54_0/tools/build/v2/engine/build.jam	(revision 84983)
++++ boost_1_54_0/tools/build/v2/engine/build.jam	(revision 86460)
+@@ -490,6 +490,6 @@
+     rules.c scan.c search.c subst.c w32_getreg.c timestamp.c variable.c
+     modules.c strings.c filesys.c builtins.c class.c cwd.c native.c md5.c
+-    modules/set.c modules/path.c modules/regex.c modules/property-set.c
+-    modules/sequence.c modules/order.c ;
++    [ .path modules set.c ] [ .path modules path.c ] [ .path modules regex.c ]
++    [ .path modules property-set.c ] [ .path modules sequence.c ] [ .path modules order.c ] ;
+ if $(OS) = NT
+ {

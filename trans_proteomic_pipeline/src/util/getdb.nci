@@ -1,0 +1,88 @@
+#!/bin/csh
+
+#
+# get NRP.fasta from NCI ---------
+#
+ftp -n <<DONE_WITH_FTP
+open ftp.ncifcrf.gov
+user anonymous email@yourdomain.com
+cd /pub/nonredun/
+bin
+prompt
+get protein.nrdb.gz NRP.nci.fasta.gz
+get NRP.readme NRP.nci.readme
+DONE_WITH_FTP
+
+#
+# uncompress downloaded file  ----------
+#
+rm -f NRP.fasta
+gunzip NRP.nci.fasta.gz
+
+#
+# substitute for NRP database ----------
+#
+#sed 's/^>\(UPSP:\)\([^| ]*\)\(.*\)$/>\2 \1\2\3/' NRP.nci.fasta > NRP.nci.fasta2
+#mv -f NRP.nci.fasta2 NRP.nci.fasta
+#sed 's/^>\(TFD:\)\([^| ]*\)\(.*\)$/>\2 \1\2\3/' NRP.nci.fasta > NRP.nci.fasta2
+#mv -f NRP.nci.fasta2 NRP.nci.fasta
+
+#
+# add escaping of special chars ', ", & and substitute < to [ and > to ] in def lines
+# warning, substitution is expensive aka slow; comment out next two commands
+# if you can't afford the time and deal with the special chars yourself
+#
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(.*\)$/>\1/' < NRP.nci.fasta > NRP.nci.fasta2
+mv -f NRP.nci.fasta2 NRP.nci.fasta
+
+#
+# append date to filenames  ----------
+#
+set currdate=`date +%Y%m%d`
+
+rm -f NRP.nci.fasta.$currdate NRP.nci.readme.$currdate
+mv NRP.nci.fasta NRP.nci.fasta.$currdate
+mv NRP.nci.readme NRP.nci.readme.$currdate
+
+#
+# create subset databases  ----------
+#
+subsetdb -M_HUMAN -M\(human\) -M-^human -Mhomo^sapien -Ohuman.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_YEAST -M\(baker\'s^yeast\) -Oyeast.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_SCHPO -M\(fission^yeast\) -Ofissionyeast.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_BOVIN -M\(bovine\) -Mbos^taurus -Obovine.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_MOUSE -M\(mouse\) -Mmus^musculus -Omouse.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_RAT   -M\(rat\) -Mrattus^norvegicus -Orat.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_ECOLI -Mescherichia^coli -Oecoli.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_CAEEL -Mcaenorhabditis^elegans -Ocelegans.nci.$currdate NRP.nci.fasta.$currdate
+subsetdb -M_DROME -M\(fruit^fly\) -Odrosophila.nci.$currdate NRP.nci.fasta.$currdate
+
+
+#
+# append common contaminants & trypsin to databases  ----------
+#
+
+cat trypsin.bovine trypsin.porcine >> human.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> yeast.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> fissionyeast.nci.$currdate
+cat keratin.nci trypsin.porcine >> bovine.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> mouse.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> rat.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> ecoli.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> celegans.nci.$currdate
+cat keratin.nci trypsin.bovine trypsin.porcine >> drosophila.nci.$currdate
+
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.other contam.yeast >> human.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> yeast.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> fissionyeast.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.ecoli contam.human contam.other contam.yeast >> bovine.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.human contam.other contam.yeast >> ecoli.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> mouse.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> rat.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> celegans.nci.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> drosophila.nci.$currdate

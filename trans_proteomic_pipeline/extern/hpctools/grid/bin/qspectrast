@@ -1,0 +1,234 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2010-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings ------------------------------------------------------------
+   
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+
+   # Default queue to submit jobs to
+   QQUEUE=${QQUEUE:-}
+
+   # Default project to use
+   QPROJECT=${QPROJECT:-}
+   
+   # Programs
+   SPECTRAST=${SPECTRAST-$(which spectrast || true)}
+   
+   # Default spectrast flags
+   SPECTRAST_FLAGS=${SPECTRAST_FLAGS-}
+
+# -----------------------------------------------------------------------------
+
+# 
+# Output a message to STDERR on usage and exit with a error status
+# @param  mesg(s) to print
+#
+function usage() {
+   [ "$1" ] && echo "$(basename $0): $*" 1>&2
+   echo "Usage:"
+   echo "$(basename $0) [options] [spectrast opts] run(s) [-- [qsub options]]"
+   echo
+   echo "Options:"
+   echo "   -h, --help          help"
+   echo "   -m, --manual        manual"
+   echo
+   echo "   [spectrast opts]	see spectrast -h for options"
+   echo "   [qsub options]      all flags following '--' are passed to qsub"
+   exit 1
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds {
+
+   # spectrast writes its own log file named spectrast.log.  Rename
+   # it to something else unless the user provided an alternate name for it
+   if [ "$SPECTRAST_LOG" = "" ]; then
+      LOG=" -L $odir$root.spectrast.log"
+   fi
+   
+   cmds=$(cat <<EOF
+${SPECTRAST} ${SPECTRAST_FLAGS} ${LOG} $file
+EOF
+)
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "Q" grid functions
+
+# Check for necessary programs
+[ -x "${SPECTRAST}" ] || die "Error no spectrast in your path"
+
+# Check options
+INPUTS=
+while [ "$1" ]; do
+   case "$1" in 
+   --)
+      shift
+      QSUBFLAGS=$*
+      break
+      ;;
+   -h|--help)
+      usage
+      ;;
+   -m|--manual)
+      pod2man -n 'HPC TOOLS' -c 'Trans-Proteomic Pipeline (TPP)' $0 | nroff -man | less
+      exit
+      ;;
+   -sL*|-sF*)
+      MODE=search
+      SPECTRAST_FLAGS+=" $1 "
+      shift
+      ;;
+   -cN*)
+      SPECTRAST_LIB="${1#-cN}"
+      SPECTRAST_FLAGS+=" $1 "
+      shift
+      ;;
+   -c*)
+      MODE=create
+      SPECTRAST_FLAGS+=" $1 "
+      shift
+      ;;
+   -L*)
+      SPECTRAST_LOG="${1#-L}"
+      SPECTRAST_FLAGS+=" $1 "
+      shift
+      ;;
+   -*)
+      SPECTRAST_FLAGS+=" $1 "
+      shift
+      ;;
+   *)
+      [ -e "$1" ] || usage "Error $1 file not found";
+      INPUTS+=" $1"
+      shift
+      ;;
+   esac
+done
+
+# Spectrast requires a mode.  If one doesn't exist assume its search
+# and that the parameters file is the default
+if [ "$MODE" = "" ]; then
+      SPECTRAST_FLAGS+=" -sFspectrast.params"
+      MODE=search
+fi
+
+# Submit create job
+if [ "$MODE" = "create" ]; then
+   root="${SPECTRAST_LIB}"                      # from -cN flag
+   idir=$(dirname $(rel2abs "$root"))           # base directory of input
+   [ "$root" = "" ] && die "no basename found for spec library"
+   file="$INPUTS"
+   setcmds; submit
+   exit 0
+else
+   submit_jobs
+fi
+
+exit 0
+
+
+# -- POD DOCUMENTATION ------------------------------------------------------
+#
+# Documentation for wrappers.  Uses pod with a shell trick.  Simply run
+# pod2man on this file to get the documentation.
+#
+: <<POD
+
+=head1 NAME
+
+qspectrast - Submits a spectrast library build or search to the cluster
+
+=head1 SYNOPSIS            
+
+qspectrast [options] [spectrast opts] file(s) [-- [qsub options]]
+
+ Options:
+   -h, --help           display this help and exit
+   -m, --manual         display the manual and exit
+   
+=head1 DESCRIPTION
+
+Simple script which submits a job that runs spectrast.
+
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<-m, --manual>
+
+Print a longer version of the help.
+
+=back
+
+=head1 OUTPUT
+
+Will print a job identifier for each search job submitted. See either OpenPBS
+qsub or Sun Grid Engine's qsub command manual for more  information about the
+format of the job id and how to use them.
+
+Each search program's output (both STDOUT and STDERR) will be captured in a 
+job specific "<input file>.spectrast.log" file.  This file is written by the
+cluster software when the job finishes.
+
+=head1 EXAMPLE 1
+
+Running a simple SpectraST search on the cluster:
+
+=over 5
+
+S<qspectrast -sFspectrast.params -sLbar.splib foo.mzXML>
+
+=back
+
+=head1 ADDITIONAL RESOURCES
+
+=item L<http://tools.proteomecenter.org/wiki/index.php?title=Software:SpectraST>
+
+SpectraST web site.
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut
+
+POD

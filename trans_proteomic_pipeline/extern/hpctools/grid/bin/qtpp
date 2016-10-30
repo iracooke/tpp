@@ -1,0 +1,265 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2010 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings ------------------------------------------------------------
+
+   # Default name for jobs in queue
+   QNAME=${QNAME:-}
+   
+   # Default queue to submit jobs to
+   QQUEUE=${QQUEUE:-}
+    
+   # Programs
+   
+# -- Functions -----------------------------------------------------------------
+
+# 
+# Output a message to STDERR on usage and exit with a error status
+# @param  mesg(s) to print
+#
+function usage() {
+   [ "$1" ] && echo "$(basename $0): $*" 1>&2
+   echo "Usage:"
+   echo "$(basename $0) [options] *.pep.xml file(s) [-- [qsub options]]"
+   echo
+   echo "Options:"
+   echo "   -h, --help          help"
+   echo "   -m, --manual        manual"
+   echo
+   echo "   [qsub options]      all flags following '--' are passed to qsub"
+   echo
+   exit 1
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function cmds() {
+   cat <<EOF
+   
+# Read in additional command parameters
+PEPXMLS='$PEPXMLS'
+[ -f xinteract.params ] && XPARAMS=\`cat xinteract.params\`
+[ -f xinteract.searchstyle.params ] && XSRCHSTYLEPARAMS=\`cat xinteract.searchstyle.params\`
+[ -f calctppstat.params ] && CALCPARAMS=\`cat calctppstat.params\`
+
+echo "================================================================"
+echo "TPP Parameters"
+echo "================================================================"
+echo "         PEPXMLS = \$PEPXMLS"
+echo "         XPARAMS = \$XPARAMS"
+echo "XSRCHSTYLEPARAMS = \$SRCHSTYLEPARAMS"
+echo "       CALCPARAM = \$CALCPARAMS"
+echo
+
+# Make sure we have all of our input files
+for file in \$PEPXMLS; do
+   if [ ! -f "\$file" ]; then
+      echo "Error missing file \$file" >&2
+      exit 1
+   fi
+done
+
+# Remove any previous results
+/bin/rm -f interact-prob*
+/bin/rm -f interact-iprob*
+/bin/rm -f interact-highprob*
+
+echo "================================================================"
+echo "Running Peptide Prophet with -p0"
+echo "================================================================"
+xinteract \$XPARAMS \$XSRCHSTYLEPARAMS -Ninteract-prob.pep.xml -p0 -x3 \$PEPXMLS
+InterProphetParser interact-prob.pep.xml interact-ipro.pep.xml
+MayuPepXML.csh interact-ipro.pep.xml
+ProteinProphet interact-ipro.pep.xml interact-prob.prot.xml  IPROPHET PROTLEN NORMPROTLEN MININDEP0.2 UNMAPPED
+echo 
+
+echo "================================================================"
+echo "Rerunning Peptide Prophet with -p0.5"
+echo "================================================================"
+xinteract \$XPARAMS \$XSRCHSTYLEPARAMS -Ninteract-highprob.pep.xml -p0.5 -x3 \$PEPXMLS
+#### InterProphetParser: can't run InterProphet on -p0.5 data!
+ProteinProphet interact-ipro.pep.xml interact-highprob.prot.xml IPROPHET PROTLEN NORMPROTLEN MININDEP0.2 UNMAPPED MINPROB0.5
+echo 
+
+echo "================================================================"
+echo "Calculating TPP statistcis"
+echo "================================================================"
+calctppstat.pl -i interact-ipro.pep.xml --FDRthresh --full --write \$CALCPARAMS
+echo 
+
+EOF
+}
+
+# -- Main ----------------------------------------------------------------------
+
+source qgrid_functions                          # Load "q" grid functions
+
+#
+# Check program parameters
+#
+PEPXMLS=
+QSUBFLAGS=
+QSUBDEPENDS=
+while [ "$1" ]; do
+   case "$1" in 
+      --)
+         shift
+         QSUBFLAGS=$*
+         break
+         ;;
+      -h|--help)
+         usage
+         ;;
+      -m|--manual)
+         pod2man -n 'HPC TOOLS' -c 'Trans-Proteomic Pipeline (TPP)' $0 | nroff -man | less
+         exit
+         ;;
+      --depends)
+         if [ -z "$SGE_ROOT" ]; then
+            QSUBDEPENDS="-W depend=\"afterok:$2\""
+         else
+            QSUBDEPENDS=`echo "-hold_jid $2" | perl -pe 's/:/,/gm;'`
+         fi
+         shift 2
+         ;;
+      *.pep.xml)
+         PEPXMLS+="$1 "
+         shift
+         ;;
+      *)
+	 echo "Invalid argument: $1"
+	 usage
+         ;;
+   esac
+done
+[ ! -z "$PEPXMLS" ] || usage "Error missing one or more pep.xml files"
+
+# Submit job
+cmds | submit "$PWD/TPP" "$PWD"
+
+exit 0
+
+
+# -- POD DOCUMENTATION ------------------------------------------------------
+#
+# Documentation.  Uses pod with a shell trick.  Simply run pod2man on this file
+# to get the documentation.
+#
+: <<POD
+
+=head1 NAME
+
+qtpp - submit a batch job that runs a TPP analysis on a set of data
+
+=head1 SYNOPSIS            
+
+ qtpp [options] *.pep.xml ... [-- [qsub options]]
+
+ Options:
+   -h, --help          print this help
+   --depends <ids>     colon separated list of jobs to wait for before running
+   
+   [qsub options]         All flags following '--' are passed to qsub
+   
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<--version>
+
+Displays the version of this program and exit.
+
+=item B<--depends> I<<jobids>>
+
+Wait for all of the specified jobs to finish before running.  Useful in
+conjunction with a search program to submit a large number of searches to
+the cluster and run a TPP analysis when they all complete.  The list of jobs
+should delimited with a colon.
+
+=back
+
+=head1 DESCRIPTION
+
+This program submits a job to a cluster that performs a set of peptide prophet,
+interpro prophet and protein prophet analysis.
+
+=head1 PREREQUSITES
+
+First off, you can only invoke it on the head node of the cluster and you
+must have TPP installed on all nodes in the same directory.
+
+Secondly you'll need to have the same working directory mounted and available
+on all nodes in the cluser.
+
+Lastly you'll have to have authority to submit jobs to the appropriate queue
+on the cluster.  Talk to your local cluster administrator for further details.
+
+=head1 OUTPUT
+
+The program outputs the batch job id. 
+
+=head1 EXAMPLE 
+
+The following command submits an analysis on a set of pep.xml files:
+
+=over 5
+
+S<qtpp *.pep.xml>
+
+=back
+
+=head1 SEE ALSO
+
+=over 5
+
+=item qtandem - submit one or more tandem search jobs
+
+=item qomssa - submit one or more omssa search jobs
+
+=item qinspect - submit one or more inspect search jobs
+
+=item qmyrimatch - submit one or more myrimatch search jobs
+
+=item qsub, OpenPBS L<http://www.openpbs.org>, 
+
+=item Sun Grid Engine L<http://gridengine.sunsource.net>
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut

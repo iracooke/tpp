@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\common;$(SolutionDir)..\extern\boost_1_45_0;$(SolutionDir)../extern/ProteoWizard/pwiz;$(SolutionDir)../extern/gzstream;$(SolutionDir)..\extern\zlib-1.2.5;$(SolutionDir)..\extern\common_win32_vc10;$(SolutionDir)Parsers\ramp;$(SolutionDir)..\extern\libw32c\include;$(SolutionDir)../extern/expat-2.0.1/lib;$(SolutionDir)..\extern\gdwin32;$(SolutionDir)../extern/ProteoWizard/pwiz/libraries/boost_aux;$(SolutionDir)../extern/ProteoWizard/pwiz/pwiz/data/msdata;$(SolutionDir)../extern/fann-2.0.0/src/include;$(SolutionDir)../build/msvc/gsl-1.14/msvc;$(SolutionDir)../build/msvc/gsl-1.14;$(SolutionDir)../extern/openmpi/ompi/include;$(SolutionDir)../extern;$(SolutionDir)../extern/ProteoWizard/pwiz/libraries/libsvm-3.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>FANN_NO_DLL;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4996;4503;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:auto- %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(SolutionDir)..\extern\boost_1_45_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>
+      </LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>

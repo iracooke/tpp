@@ -1,0 +1,37 @@
+Version control ProteoWizard and sashimi
+
+The ProteoWizard tarball represents a snapshot of a subset of the
+ProteoWizard (pwiz) project.  We take a subset because the
+pwiz tree is currently ill-organized for getting just the
+source code, and we'd be grabbing a bunch of binaries we don't want,
+which slows the build process (especially in the cloud, where it's
+common to deal with a build machine which has just spun up and doesn't
+have an svn cache).
+
+Also, using the "svn exernal" mechanism is just too slow and
+unreliable, at least for the current projects' hosts.
+
+
+
+
+This tarball represents revision 1132 of
+
+ https://proteowizard.svn.sourceforge.net/svnroot/proteowizard/trunk/pwiz/pwiz
+
+and
+
+ https://proteowizard.svn.sourceforge.net/svnroot/proteowizard/trunk/pwiz/libraries/boost_aux
+
+
+
+
+An important note regarding updating this local copy of pwiz:
+
+Make sure the pwiz makefile fragment in
+
+ trans_proteomic_pipeline/src/Makefile.pwiz.incl
+
+still makes sense (as in, did the pwiz source tree shift around?).
+We're still not using the official bjam-based build system, it's just
+too brittle for now.
+

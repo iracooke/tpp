@@ -1,0 +1,541 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+#
+# Common BASH Shell Functions used by the set of "q" scripts used to submit
+# jobs to run some of the various TPP programs
+#
+# Note there are a number of different environment variables used by these
+# functions that should be set in the "q" scripts. All begin with the letter
+# "q" and the default values are set in the local settings below.
+#
+
+# -- Local settings -----------------------------------------------------------
+#
+# Feel free to modify these variables as needed for your site.
+#
+
+   # Default name of the job
+   QNAME=${QNAME:-$(basename $0)}
+   
+   # Default queue to use for job submission
+   QQUEUE=${QQUEUE-}
+   
+   # Default project to use for job submission
+   QPROJECT=${QPROJECT-}
+   
+   # Path to the qsub command
+   QSUB=${QSUB-`which qsub 2>/dev/null`}        
+   
+   # Additional default qsub flags to use
+   QSUBFLAGS=${QSUBFLAGS-}
+
+   # Extra commands to invoke at the end of the job
+   QEXTRA=${QEXTRA-}
+
+
+# -- Functions -----------------------------------------------------------------
+
+# Simple "die" and warn functions
+function die () {
+   echo "$(basename $0): ${1:-"Unknown error"}" 1>&2
+   exit 1
+}
+
+function warn () {
+   echo "$(basename $0): ${1:-"Unknown error"}" 1>&2
+}
+
+# Turn a relative to absolute path
+# From http://unix.derkeiler.com/Newsgroups/comp.unix.programmer/2005-01/0206.html
+function rel2abs() {
+  [ "$#" -eq 1 ] || return 1
+  ls -Ld -- "$1" > /dev/null || return
+  dir=$(dirname -- "$1" && echo .) || return
+  dir=$(cd -P -- "${dir%??}" && pwd -P && echo .) || return
+  dir=${dir%??}
+  file=$(basename -- "$1" && echo .) || return
+  file=${file%??}
+  case $dir in
+    /) printf '%s\n' "/$file";;
+    /*) printf '%s\n' "$dir/$file";;
+    *) return 1;;
+  esac
+  return 0
+} 
+
+# 
+# All of the MS-MS search commands (qtandem, qinspect, ...) should have a
+# this common command line interface
+#
+function search_usage() {
+   [ "$1" ] && echo "$(basename $0): $*" 1>&2
+   echo "Usage:"
+   echo "$(basename $0) [options] $EXTS [-- [qsub options]]"
+   echo
+   echo "Options:"
+   echo "   -h, --help          help"
+   echo "   -m, --manual        manual"
+   echo "   -p,--params <file>  parameter file to use (defaults to <search>.params)"
+   echo "   -o,--out-dir <dir>  destination directory for output files"
+   echo
+   echo "   [qsub options]      all flags following '--' are passed to qsub"
+   echo
+   exit 1
+}
+
+#
+# All of the MS-MS search commands (qtandem, qinspect, ...) should have a
+# the same search options
+#
+#   Sets INPUTS to list of input files to search
+#   Sets P_OPT to be the search parameter file
+#   Sets V_OPT if provided on command line
+#   Appends any qsub flags to QSUBFLAGS 
+#
+function search_options() {
+   P_OPT=$1; shift
+   EXTS=$1; shift
+   
+   INPUTS=
+   while [ "$1" ]; do
+      case "$1" in 
+      --)
+         shift
+         QSUBFLAGS+=" $*"
+         break
+         ;;
+      -h|--help)
+         search_usage
+         ;;
+      -m|--man)
+         POD=`dirname $0`/qgrid_functions
+         pod2man -n 'HPC TOOLS' -r 'HPC TOOLS' \
+            -c 'Trans-Proteomic Pipeline (TPP)' $POD | nroff -man | less
+         exit
+         ;;
+      -p|--params)
+         P_OPT="$2"
+         shift 2
+         ;;
+      -o|--out-dir)
+         O_OPT="$2"
+         shift 2
+         ;;
+      -v|--verbose)
+         V_OPT="true"
+         shift
+         ;;
+      -*)
+         search_usage "invalid option $1"
+         ;;
+      *)
+         eval "case "$1" in $EXTS) ;; *) search_usage "invalid file $1";; esac"
+         [ -f "$1" ] || search_usage "$1 file not found"
+         INPUTS+=" $1"
+         shift
+         ;;
+      esac
+   done
+   [ -z "$P_OPT" ]   && search_usage "Missing required <search>.params file"
+   [ -f "$P_OPT" ]   || search_usage "Error '$P_OPT' parameters file not found"
+   [ -z "$INPUTS" ]  && search_usage "Error missing one or more input files"
+   if [ ! -z "$O_OPT" ]; then
+      mkdir -p "$O_OPT"
+      O_OPT=$(rel2abs "$O_OPT")
+   fi
+   
+   true                 # return "status"
+}
+
+#
+# Loop through inputs and submit jobs.  Expects that the "Q" program being
+# executed defined a function called "cmds" that echos the commands to be
+# included in the qsub file to submit to the cluster.  Sets the following 
+# global variables that can be used in the cmds function:
+#
+#   prog        Which program this is
+#   file        Absolute path to the input file 
+#   idir        Absolute path of the directory containing the input file
+#   odir        Absolute path of the output directory + '/' or empty
+#   input       Just the input file name
+#   root        Just the root portion of the input file name
+# 
+function submit_jobs () {
+   prog=${prog:-$(basename $0)}
+   odir=${O_OPT:+${O_OPT}/}                     # append '/' to it
+   
+   for file in $INPUTS; do
+      file=$(rel2abs "$file")                   # use absolute path
+      idir="$(dirname "$file")/"                # base directory of input
+      input=$(basename "${file%.gz}")           # filename w/o gz extension
+      root="${input%.*}"                        # filename w/o extension
+   
+      setcmds; submit                           # submit job
+   done
+}
+
+#
+# Writes a "qsub" file and submits it to the cluster.
+#
+function submit()
+{
+   [ -x ${QSUB} ]  || die "no qsub command in your path"
+   
+   local SFILE="$odir$root.$prog.qsub"
+   local JFILE="$odir$root.$prog.qjob"
+   local LFILE="$odir$root.$prog.qlog"
+   
+   local JOBID=$(cat "$JFILE" 2>/dev/null) || true
+   if [ "$JOBID" -a "$(qstat -j $JOBID 2>/dev/null)" ]; then
+      warn "can't submit job $JFILE already exists"
+      return 
+   fi
+      
+   rm -f "$JFILE" "$SFILE" "$LFILE"
+   
+   # Write out qsub script, BE VERY WARY of escaping environment variables
+   cat <<QSUB_SCRIPT > "$SFILE"
+#!/bin/bash
+
+### Grid Directives
+#$ -S /bin/bash
+#$ ${QNAME:+-N $QNAME} ${QPROJECT:+-P $QPROJECT} ${QQUEUE:+-q $QQUEUE}
+#$ -v PATH -wd '${odir:-$PWD}'
+#$ -j y -o '$LFILE'
+#$ ${QSUBFLAGS}
+### Grid Directives
+
+set -e          # Tell bash to exit if any statement fails
+
+echo -n "== Job starting "; date '+%m/%d/%Y %H:%M:%S'
+
+# Echo some useful debugging information
+echo "== "
+echo "== Hostname = "\`hostname\`
+echo "== Username = "\`whoami\`
+echo "== PID      = \$\$"
+echo "== PWD      = \$PWD"
+echo "== PATH     = \$PATH"
+echo "== "
+echo "== SGE_ROOT      = \$SGE_ROOT"
+echo "== SGE_CELL      = \$SGE_CELL"
+echo "== SGE_O_HOST    = \$SGE_O_HOST"
+echo "== SGE_O_WORKDIR = \$SGE_O_WORKDIR"
+echo "== JOB_ID        = \$JOB_ID"
+echo "== JOB_NAME      = \$JOB_NAME"
+echo "== QUEUE         = \$QUEUE"
+echo "== NSLOTS        = \$NSLOTS"
+echo "=="
+
+# Function to cleanup on error or signal and report them
+function on_exit() {
+   local err=\$?                # can't put anything before here
+   local sig=\$((err - 128))
+   set +x
+   trap - HUP INT QUIT TERM ERR EXIT
+   
+   # Remove job file (if it exists)
+   [ -f "$JFILE" ] && rm -f "$JFILE"
+   
+   # What did we trap?
+   echo
+   if [ \$sig -eq 12 ]; then                            # trapped SIGUSR2
+      echo -n "== Job was signaled to stop by SGE "; date '+%m/%d/%Y %H:%M:%S'
+      err=0
+   elif [ \$sig -gt 0 -a \$sig -lt 64 ]; then           # trapped signal
+      echo "== Job received SIG \$sig "; date '+%m/%d/%Y %H:%M:%S'
+      err=0
+   elif [ \$err -ne 0 ]; then                           # trapped error
+      echo -n "== Job exited with error(\$err) "; date '+%m/%d/%Y %H:%M:%S' 
+   else                                                 # trapped exit
+      echo -n "== Job completed "; date '+%m/%d/%Y %H:%M:%S'
+   fi
+
+   exit \$err 
+}
+trap on_exit HUP INT QUIT TERM ERR USR2 EXIT
+
+echo "== Enabling echoing of commands"; echo
+set -x
+
+# Commands
+$cmds
+
+# Extras
+$QEXTRA
+
+exit 0
+QSUB_SCRIPT
+
+   # Submit the job
+   JOB=$($QSUB "$SFILE")
+   echo $JOB
+   echo $JOB | perl -ne 'print $1 if /Your job (\d+)/' > "$JFILE"
+}
+
+
+# -- POD DOCUMENTATION ------------------------------------------------------
+#
+# Documentation for wrappers.  Uses pod with a shell trick.  Simply run
+# pod2man on this file to get the documentation.
+#
+: <<POD
+
+=head1 NAME
+
+qconvert   - Submit a ProteoWizard msconvert job to a cluster
+
+qtandem    - Submit a Tandem MS/MS peptide search to a cluster
+
+qcomet     - Submit a comet MS/MS peptide search to a cluster
+
+qsomssa    - Submit a OMSSA MS/MS peptide search to a cluster 
+
+qinspect   - Submit a InsPect MS/MS peptide search to a cluster
+
+qmyrimatch - Submit a Myrimatch MS/MS peptide search to a cluster
+
+qmascot    - Submit a Mascot MS/MS peptide search to a cluster
+
+=head1 SYNOPSIS            
+
+q<program> [options] <input files> [-- [qsub options]]
+
+Common Options:
+   -h, --help           display brief description and exit
+   -m, --man            display this help and exit
+ [qsub options]         all options following '--' are passed to qsub
+   
+Search Program Options:
+   -p,--params <file>   file containing MS search algorithm parameters 
+   -o,--out-dir <dir>   directory as the destination for output files  
+ 
+=head1 DESCRIPTION
+
+Collection of wrapper programs which can be used to submit different kinds
+of proteomics programs to a Sun Grid Engine cluster.
+
+=head1 COMMON OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<-m, --man>
+
+Prints this manual page
+
+=item B<-- [qsub options]>
+
+Any options following a "--" designator will be used as additional parameters to
+the qsub command.  So for example to change the queue that the job is submitted
+to you could run the command "qtandem *.mzML -- -q serial". Or to send you 
+an email when the job completes you could use "qomssa *.mzML -- -m ae".
+
+Please see the man page for the qsub command for a full explaination of all of
+the possible options.
+
+
+=head1 MS/MS SEARCH IDENTIFICAION OPTIONS
+
+=item B<-p,--params FILE>
+
+Specify the parameters file to use in the search.  If not provided then the
+program will default to a file named "I<search>.params" in the local current
+directory, where I<search> is the name of the search program to invoke.
+E.g. qtandem will defaults to "tandem.params".
+
+Parameter files are expected to be in the format normally accepted by the
+search program in use with some exceptions.  Please see the specific section
+on the search program for more details about the format and these exceptions. 
+For most search programs an input specific parameters file will be created.
+These files will be named after the spectra filename and the search program, 
+for example a halo1.tandem.params will be created in the local directory for
+the file halo1.mzXML.
+
+=item B<-d,--dest DIR>
+
+Specifies the destination directory of the search results.  If the destination
+directory doesn't exist it will be created first then links to all input files
+will be placed in this destination along with all output files from the search.
+No care is taken to prevent overwriting any existing files.
+
+=back
+
+=head1 PREREQUSITES
+
+First off you can only invoke these commands on the head node of the cluster
+(or any system that has permissions to submit jobs to the cluster). Secondly,
+these programs require the appropriate search programs be installed on the
+cluster and in an accessible location for all nodes in the cluster.  Lastly each
+program assumes that local working directory is the same on all nodes and that
+any additional databases or auxiliary files are also available on all nodes.
+
+=over 5
+
+=item I<Sun Grid Engine>
+
+In order to use SGE you need to ensure that your shell environment is setup
+correctly.  In most cases your system administrator should already have provided
+local system settings in your login files.  You can check to see if your
+settings are correct by examining your environment for any variables beginning
+with the name "SGE_".  (The command 'env | grep SGE' is useful here)
+
+=head1 JOB EXECUTION
+
+All of these programs will print a job identifier for each search job submitted
+and write a "<input file>.<program>.qjob" job id file.  When the job completes
+(or an error occurs) its corresponding job id file is normally deleted. See the 
+Sun Grid Engine's qsub command manual for more information about the format of 
+the job id and how to use them.  In some rare cases the job id file might not
+be deleted.  In such cases the job id files can either be manually deleted or
+you can just resubmit the job and it will be updated automatically.
+
+Each search program's output (both STDOUT and STDERR) will be captured in a 
+job specific "<input file>.<program>.qlog" file.  This file is written by the
+grid software when the job finishes.
+
+=head1 EXAMPLE 
+
+To run a search on the cluster you'll need to provide two things, a search 
+parameters file and one or more mzML formatted files containing MS/MS 
+spectrum data. 
+
+So for example:
+
+=over 5
+
+S<qtandem -p tandem.params mydata.mzML>
+
+=back
+
+This will submit a tandem search job to the cluster for mydata.mzML in the
+current directory.  The results will be written to the file mydata.pep.xml and
+any output for the job will be captured in mydata.tandem.qlog.
+
+=head1 USING MSCONVERT
+
+ProteoWizard's msconvert is a program that can be used to convert MS data 
+files from one format to another.  Its commonly used to convert raw proprietary
+data formats into the open standard mzML format.  Because most conversions 
+require proprietary Window's libraries the msconvert program typically resides
+on one or more Window's server computers and is invoked using a client/server
+program produced at ISB called remoteconvert.pl.
+
+=head1 USING X!TANDEM 
+
+X! Tandem is an open source program produced by the Global Proteome Machine
+Organization.  The parameter file should be in the format that the program
+accepts with the only exception being that the "spectrum, path", 
+"output, path", and "output, sequence path" parameters will automatically be
+filled in with spectra specific values.
+
+=head1 USING OMSSA
+
+Because I<omssa> only accepts command line flags, a simple but effective
+parameter file format was devised.  This format is based on the command flags
+whereas each line is simply the command flag and value. Comments can be included
+in the file using the '#' character. 
+
+=head1 USING INSPECT  
+
+InsPect is was developed at the University of California, San Diego.
+You'll have to install this program locally on your cluster and ensure that
+the program is in your path. The location of the resource files used by 
+I<inspect> will be inferred by the location of the program itself as this
+is the typical setup for a installation.
+
+Parameter values should be specified in a single inspect.params file following
+the standard I<inspect> format with the only exception being that the name
+of the spectra file is ignored.  The I<qinspect> script will create a 
+specific input file for each spectrum using inspect.params as a template and
+replacing the "spectra,(.*)" line with the name of the spectra file.
+
+=head1 USING MYRIMATCH 
+
+Parameter values should be specified in a single myrimatch.params file following
+the standard I<myrimatch> format with the only exception being that the name
+of the spectra file is ignored.  The I<qmyrimatch> script will create a 
+specific input file for each spectrum using myrimatch.params as a template and
+replacing the "spectra,(.*)" line with the name of the spectra file.
+
+=head1 USING MASCOT
+
+Mascot is a commercial search engine produced by Matrix Science.  Unlike the
+other search engines, the actual execution of mascot isn't executed locally on 
+the cluster but but instead is expected to be run on a separate Mascot server.
+The I<qmascot> script submits jobs and retrieves results via HTTP calls.  The 
+files are first converted into mgf format and the results dta files are 
+converted to  pep.xml.
+
+Note that since this conversion requires the database file from the server, this
+file will automatically be downloaded and placed in the current directory 
+alongside the results.
+
+The parameter file should be in the same "mgf" format that Mascot accepts (but
+without any actual spectrum values).  I<qmascot> will automatically merge the
+parameter values into each mgf file before submitting the search to the mascot
+server.
+
+=head1 ADDITIONAL RESOURCES
+
+=item L<http://gridengine.sunsource.net/>
+
+Sun Grid Engine project.
+
+=item L<http://www.thegpm.org/tandem/index.html>
+
+X!Tandem  open source software.
+
+=item L<http://pubchem.ncbi.nlm.nih.gov/omssa/>
+
+The Open Mass Spectrometry Search Algorithm [OMSSA]
+
+=item L<http://proteomics.ucsd.edu/>
+
+InsPecT: A Proteomics Search Toolkit
+
+=item L<http://fenchurch.mc.vanderbilt.edu/bumbershoot/myrimatch/index.html>
+
+The MyriMatch MS-MS database search program. 
+
+=item L<http://matrixscience.com>
+
+Matrix Science's mascot MS-MS search program.
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut
+
+POD

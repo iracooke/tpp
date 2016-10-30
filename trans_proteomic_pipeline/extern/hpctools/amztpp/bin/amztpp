@@ -1,0 +1,949 @@
+#!perl
+#
+# Program: TPP AWS Search Tool
+#
+# Author:  Joe Slagel
+#
+# Copyright (C) 2010-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: amztpp 6285 2013-09-20 16:50:03Z slagelwa $
+#
+use strict;
+use warnings;
+use POSIX;
+use Digest::MD5::File qw( file_md5_base64 file_md5_hex );
+use File::Basename;
+use File::Spec;
+use Getopt::Long;
+use Module::Load;
+use Pod::Find qw( pod_where );
+use Pod::Usage;
+use VM::EC2;
+
+use TPP::AWS;
+use TPP::AWS::Logger qw( $log );
+use TPP::AWS::Client;
+use TPP::AWS::Credentials qw( credentials );
+use TPP::AWS::Report;
+use TPP::AWS::Status;
+
+our @ISA = qw( Exporter );
+our @EXPORT_OK = qw( main );
+
+
+#-- @GLOBALS -----------------------------------------------------------------#
+
+our $REVISION = (q$Revision: 6285 $ =~ /(\d+)/g)[0] || '???'; 
+
+our $prog = basename($0);       # Program name
+our %opts;                      # Program invocation options
+our $cmd = '';                  # Program command
+
+our @keys;                      # AWS access, secret, region and bucket keys
+our $s3m;                       # S3 connection
+our $ec2m;                      # EC2 connection
+our $sqsm;                      # SQS connection
+
+our $client;                    # Client process
+
+my %services =                  # TPP cloud services
+   (
+   inspect   => sub { TPP::AWS::InspectService->new( shift, 
+                      $opts{params} || 'inspect.params',
+                      $opts{outdir} ) },
+   myrimatch => sub { TPP::AWS::MyrimatchService->new( shift, 
+                      $opts{params} || 'myrimatch.params',
+                      $opts{outdir} ) },
+   omssa     => sub { TPP::AWS::OMSSAService->new( shift,
+                      $opts{params} || 'omssa.params',
+                      $opts{outdir} ) },
+   xtandem   => sub { TPP::AWS::TandemService->new( shift,
+                      $opts{params} || 'tandem.params',
+                      $opts{outdir} ) },
+   comet     => sub { TPP::AWS::CometService->new( shift,
+                      $opts{params} || 'comet.params',
+                      $opts{outdir} ) },
+
+   rnaseqpdb => sub { TPP::AWS::RNASeqPDBService->new( shift,
+                      $opts{params} || 'rnaseqpdb.params',
+                      $opts{outdir} ) },
+   );
+   $services{tandem} = $services{xtandem};              # Alias
+
+
+#-- @MAIN -------------------------------------------------------------------#
+
+$| = 1;         # Flush STDOUT automatically
+{
+   parseOptions();
+   
+   # Basic options...
+   printVersion() && exit 0   if ( $opts{version} );
+   pod2usage( -exitval => 2 ) if ( $opts{help} );
+   pod2usage( -verbose => 2 ) if ( $opts{man} || $cmd =~ /help/i );
+   
+   # Logging
+   if ( $opts{verbose} )
+      {
+      $log->{level} = 1;                # debug
+      $log->{fmt}   = '[%d] (%p) %m';
+      }
+   else
+      {
+      $log->{level} = 2;                # info
+      $log->{fmt}   = "$::prog: \%m";
+      }
+   
+   # Get AWS Credentials
+   @keys = credentials( @opts{qw(access-key secret-key region bucket)} );
+   $keys[2] ||= 'us-west-2';
+   unless ( $keys[0] && $keys[1] )
+      {
+      $log->fatal( "missing/invalid AWS credentials" );
+      exit 1;
+      }
+      
+   # AWS credential commands
+   exit( checkCred( \@keys ) ) if ( $cmd =~ /check/ );
+   exit( saveCred( \@keys ) )  if ( $cmd =~ /save/ );
+   exit( deleteCred() )        if ( $cmd =~ /delete/ );
+   
+   # Initialize connections to AWS
+   runtimeUse();                        # Moose is very s.l.o.w to load
+   $ec2m = TPP::AWS::EC2Manager->new( @keys );
+   $s3m  = TPP::AWS::S3Manager->new()->open( @keys );
+   $sqsm = TPP::AWS::SQSManager->new( @keys[0..2] );
+   
+   if ( $^O =~ /MSWin/ )
+      {
+      load TPP::AWS::Win32Client;
+      $client = TPP::AWS::Win32Client->new( \@keys, \%opts );
+      }
+   else
+      {
+      load TPP::AWS::DaemonClient;
+      $client = TPP::AWS::DaemonClient->new(\ @keys, \%opts );
+      }
+   
+   # Management commands
+   exit( status() )             if ( $cmd =~ /status/ );
+   exit( realclean() )          if ( $cmd =~ /realclean/ );
+   exit( stopBackground() )     if ( $cmd =~ /stop/ );
+   $sqsm->createQueues();       # ...need queues from here on out
+   exit( startBackground() )    if ( $cmd =~ /start/ );
+   exit( ec2Launch() )          if ( $cmd =~ /launch/ );
+   exit( ec2Terminate() )       if ( $cmd =~ /terminate/ );
+   exit( report() )             if ( $cmd =~ /report/ );
+   
+   # Queue services 
+   my $factory = $services{$cmd};
+   $log->logdie( "unknown service '$cmd'" ) unless ( $factory );
+   
+   # ...sort files by descending size (uses schwartzian transform trick)
+   my @files = map { $_->[0] }                  # restore orig
+               sort { $b->[1] <=> $a->[1] }     # sort large to small
+               map { [$_, -s || 0 ] } @ARGV;    # transform
+   foreach my $file ( @files )
+      {
+      $log->logdie( "'$file': file not found" ) if ( ! -f $file );
+      $sqsm->queueUpload( &$factory( $file ) );
+      $log->info( "queued $file" );
+      }
+
+   $client->pid()
+      or $log->warn( "warning: no background process, use start command to process queued services" );
+   
+   exit 0;
+}
+
+
+#-- @SUBROUTINES ------------------------------------------------------------#
+
+#
+# Processes the command line arguments and initialize the global %opts
+# variable.
+#
+sub parseOptions
+   {
+   my ( $params ) = @_;
+   
+   # Get options...
+   my @flags;
+   push @flags, qw( help|h|? man version|V verbose|v);          # Program flags
+   push @flags, qw( access-key=s secret-key=s );                # AWS creds
+   push @flags, qw( region=s bucket=s);
+   push @flags, qw( foreground|f log|l=s maxprocs|P=i );        # Daemon flags
+   push @flags, qw( pidfile=s );
+   push @flags, qw( ec2-num=i ec2-max=i ec2-util=f );           # EC2 flags
+   push @flags, qw( ec2-spot=f ec2-id=s ec2-type=s ec2-key=s ec2-group=s );
+   push @flags, qw( params|p=s );                               # Search flags
+   push @flags, qw( outdir|o=s );                               #
+   push @flags, qw( xml );                                      # XML out format
+
+   Getopt::Long::Configure("bundling");
+   GetOptions( \%opts, @flags ) || pod2usage( -exitval => 2 );
+   $opts{'ec2-max'}  = defined $opts{'ec2-max'}  ? $opts{'ec2-max'}  : 1;
+   $opts{'ec2-util'} = defined $opts{'ec2-util'} ? $opts{'ec2-util'} : 0.25;
+   $opts{params} = File::Spec->rel2abs( $opts{params} ) if ( $opts{params} );
+   $opts{log}    = File::Spec->rel2abs( $opts{log} )    if ( $opts{log} );
+   $opts{outdir} = File::Spec->rel2abs( $opts{outdir} ) if ( $opts{outdir} );
+   if ( $opts{params} && ! -f $opts{params} )
+      {
+      pod2usage( -msg => "$prog: can't read params file $opts{params}" );
+      return;
+      }
+
+   # What to do
+   if ( $opts{help} || $opts{version} || $opts{man} )   # ...no command
+      {
+      pod2usage( -msg => "$prog: too many arguments" ) if ( @ARGV );
+      return;
+      }
+
+
+   $cmd = shift @ARGV;
+   if ( !defined $cmd )
+      {
+      pod2usage( -msg => "$prog: missing command" );
+      }
+   elsif ( $cmd =~ /^(x?tandem|comet|omssa|inspect|myrimatch)/i )
+      {
+      # Make sure any input files are mz*ML files
+      @ARGV || pod2usage( -msg => "$prog: missing one or more mzML/mzXML files" );
+      for ( @ARGV )
+         {
+         pod2usage( -msg => "$prog: expected .mzML or .mzXML input file, but found $_" )
+            if !/(.mzX?ML|.mzX?ML.gz)$/;
+         }
+      }
+   elsif ( $cmd =~ /^rnaseqpdb/i )
+      {
+      ( @ARGV == 1 && $ARGV[0] =~ /(.fastq|.sca)$/ )
+         || pod2usage( -msg => "$prog: needs just one fastq/sca file" );
+      }
+   elsif ( $cmd !~ /^(save|delete|check|launch|terminate|start|stop|status|report|realclean|help)$/ )
+      {
+      pod2usage( -msg => "$prog: unrecognized command '$cmd'" );
+      }
+   }
+
+#
+# Output program version
+#
+sub printVersion
+   {
+   print "$prog, version $TPP::AWS::VERSION (r$::REVISION)\n";
+   }
+
+#
+# Runtime "use" certain modules. Hack done to delay the huge slow overhead of
+# loading Moose based modules.
+#
+sub runtimeUse
+   {
+   $log->debug( "Loading additional modules, could take a while..." );
+
+   load TPP::AWS::EC2Manager;
+   load TPP::AWS::S3Manager;
+   load TPP::AWS::SQSManager;
+
+   load TPP::AWS::CometService;
+   load TPP::AWS::InspectService;
+   load TPP::AWS::MyrimatchService;
+   load TPP::AWS::OMSSAService;
+   load TPP::AWS::RNASeqPDBService;
+   load TPP::AWS::TandemService;
+   }
+
+#
+# Check credentials
+#
+sub checkCred
+   {
+   my ( $keys ) = @_;
+   
+   my $vm = VM::EC2->new( -access_key => $keys->[0],
+                          -secret_key => $keys->[1],
+                          -raise_error => 0 );
+   if ( !$vm->describe_regions() )
+      {
+      $log->logdie( $vm->error() );
+      return -1;
+      }
+   else
+      {
+      $log->info( "AWS credentials authenticated" );
+      return "0 but true";
+      }
+   }
+ 
+#
+# Save credentials
+#
+sub saveCred
+   {
+   my ( $keys ) = @_;
+   TPP::AWS::Credentials::write( @$keys );
+   $log->info( "credentials saved" );
+   return "0 but true";
+   }
+  
+#
+# Delete credentials
+#
+sub deleteCred
+   {
+   TPP::AWS::Credentials::remove();
+   $log->info( "credentials deleted" );
+   return "0 but true";
+   }
+
+#
+# Launch (num) instances
+#
+sub ec2Launch
+   {
+   my $cnt = shift || $opts{'ec2-num'} || 1;
+   $ec2m->start( $cnt, @opts{qw(ec2-id ec2-type ec2-key ec2-group ec2-spot)} );
+   $log->info("requested $cnt instances to be launched");
+   return 0;
+   }
+
+#
+# Terminate (num) instances
+#
+sub ec2Terminate
+   {
+   my $cnt = shift || $opts{'ec2-num'} || undef;
+   my $i = $ec2m->terminate( $cnt );
+   $log->info("requested $i instances to be terminated");
+   return 0;
+   }
+
+#
+# Start the background process if it isn't already
+# running.
+#
+sub startBackground
+   {
+   $sqsm->createQueues();                # Make sure queues exist
+   
+   if ( $client->pid() )
+      {
+      $log->info( "background process already running" );
+      return 1;
+      }
+      
+   my $pid = $client->start();
+   if ( $pid && $pid != 0 )
+      {
+      $log->info( "background process started (PID $pid)" );
+      return 0;
+      }
+   elsif ( $pid )
+      {
+      $log->warn( "background process may not have started" );
+      return 1;
+      }
+   else
+      {
+      $log->error( "background process was not started" );
+      return 1;
+      }
+   }
+   
+#
+# Stop the background processing process if it is running.
+#
+sub stopBackground
+   {
+   my $pid = $client->stop();
+   if ( !defined $pid )
+      { $log->error( "background process may not have stopped" ) }
+   elsif ( $pid == 0 )
+      { $log->info( "background process was already stopped" ) }
+   else
+      { $log->info( "background process was stopped" ) }
+   return 0;
+   }
+
+sub status
+   {
+   my $pid = $client->pid();	
+   return $opts{xml} ? TPP::AWS::Status::printXML( $pid, $ec2m, $sqsm, $s3m ) 
+                     : TPP::AWS::Status::printText( $pid, $ec2m, $sqsm, $s3m );
+   }
+   
+sub report
+   {
+   my $r = TPP::AWS::Report->new();
+   
+   # SQS may not return all visible messages each time I call it, so try 
+   # several times after receiving 0 responses to make sure we got them all
+   eval
+      {
+      my $retries = 3;
+      while ( (my @srvs = $sqsm->dequeueDone( 10 )) && ($retries > 0) )
+         {
+         if ( @srvs )
+            {
+            $r->add( $_ ) for ( @srvs );
+            $retries = 3;
+            }
+         else
+            {
+            $log->debug( "checking for more done messages (retry:$retries)" );
+            $retries--;
+            sleep(1);
+            }
+         }
+         
+      # Print the report
+      $opts{xml} ? $r->printXML() : $r->printText();
+      };
+      
+   # Make all the messages we just dequeued visible again
+   $sqsm->requeueDone( $_ ) foreach @{ $r->services() };
+   
+   return 0;
+   }
+   
+#
+# Clean up all AWS/search stuff
+#
+sub realclean
+   {
+   $log->info( "cleaning AWS/searches" );
+   stopBackground();
+   my $c;
+   ( $c = $ec2m->terminate( undef ) )
+      ? $log->info("requested $c instances to be terminated")
+      : $log->info("no instances to be terminated");
+   ( $c = $sqsm->delete() )
+      ? $log->info("$c queues deleted")
+      : $log->info("no queues to delete");
+   ( $c = $s3m->delete() )
+      ? $log->info("$c files deleted")
+      : $log->info("no files to delete");
+   return 0;
+   }
+
+1;
+
+
+#-- @DOCUMENTATION ----------------------------------------------------------#
+
+__END__
+
+=head1 NAME
+
+amztpp  - TPP services on Amazon Web Services
+
+=head1 DESCRIPTION
+
+This program enables the use of the Trans Proteomic Pipeline (TPP) on Amazon 
+Web Services.
+
+=head1 SYNOPSIS
+
+amztpp <command> [options] [mzXML|mzML file(s) ...] 
+
+General Commands & Common Options:
+   help                 displays full documentation and exits
+
+   -h, --help           display this help and exit
+   --man                display full documentation and exit
+   -V, --version        output version information and exit
+   -v, --verbose        enable verbose output to console
+
+AWS Credentials Commands & Common Options:
+   check                Checks the validity of your AWS credentials
+   save                 Save your AWS credentials
+   delete               Deletes your AWS credentials
+
+   --access-key <key>   AWS public access key identifier
+   --secret-key <key>   AWS private access key identifier 
+   --region <region>    AWS E2 region (default us-west-2)
+   --bucket <name>	name of the S3 bucket (default TPP-<access key>)
+
+Service Commands & Options:
+   xtandem              identify peptides in spectrum files with X!Tandem
+   comet                identify peptides in spectrum files with Comet 
+   omssa                identify peptides in spectrum files with OMSSA
+   inspect              identify peptides in spectrum files with InsPect
+   myrimatch            identify peptides in spectrum files with MyriMatch
+
+   rnaseqpdb            generate a Protein database from RNA Seq results
+
+   -p, --params <file>  read parameters for service from file <file>
+   -o, --outdir <dir>   specify the output directory for results
+
+Client Daemon Commands & Options:
+   start                start background client process
+   stop                 stop background client process
+
+   -f, --foreground     run the client process in the foreground
+   -l, --log <file>     log client process output to file
+   -P, --maxprocs <n>   max number of parallel file transfers (default 2)
+
+   (plus all of the EC2 options below)
+
+Status Commands & Options:
+   status               display status of processes/AWS/searches
+   report               generate a report on all completed services
+
+   --xml                format output in XML
+
+EC2 Commands & Options:
+   launch               launch one or more EC2 instances
+   terminate            terminate one or more EC2 instances
+
+   --ec2-num <n>        number of EC2 instances to launch/terminate
+   --ec2-max <n>        max # of EC2 instances allowed (default 1)
+   --ec2-util <f>       ratio of how many pending/active services to have
+   --ec2-id <id>        specify id of Amazon EC2 image to start
+   --ec2-type <type>    specify type of Amazon EC2 instances to start
+   --ec2-key <name>     name of keypair to use with EC2 instances
+   --ec2-group <name>   name of security group to use with EC2 instances
+   --ec2-spot <price>   use EC2 spot instances
+
+Cleanup Commands & Options:
+
+   realclean            stop any services and remove all data/instances
+
+=head1 GENERAL COMMANDS & OPTIONS
+
+=over 5
+
+=item B<help>
+
+Display the full man page documentation and exit. See also B<--man> options.
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Display the full man page documentation and exit.
+
+=item B<-V,--version>
+
+Displays the version of this program and exit.
+
+=item B<-v, --verbose>
+
+Print informational messages while running.  Very useful in combination with
+the B<--foreground> option to see the actual background processing.
+
+=back
+
+=head1 AWS CREDENTIALS COMMANDS & COMMON OPTIONS
+
+=over 5
+
+=item B<check>
+
+Checks that the AWS credentials provided are valid.  Exits with a non-zero error
+code if the credentials don't check out.
+
+=item B<save>
+
+Saves the AWS credential values provided by the --access-key, --secret-key, and
+--region options in the file ~/.awssecret.
+
+=item B<delete>
+
+Removes any AWS credential values found in the file ~/.awssecret. 
+
+=item B<--access-key KEY>
+
+Specify the public access key identifer to use to access the Amazon Web
+services.  Overrides all other methods for specifying this.  See L<AWS Access
+Keys> for more information about how to specify the access identifiers.
+
+=item B<--secret-key KEY>
+
+Specify the secret access key identifer to use to access the Amazon Web
+services.  Overrides all other methods for specifying this.  See L<AWS Access
+Keys> for more information about how to specify the access identifiers.
+
+=item B<--region REGION>
+
+Specify the EC2 region to use in the Amazon Web Services. Overrides all other
+methods for specifying this.  Defaults to us-west-2.  See L<AWS Access
+Keys> for more information about how to specify the access identifiers.
+
+=item B<--bucket BUCKET>
+
+Specify the S3 bucket to use in the Amazon Web Services for storing input and
+output files.  Defaults to TPP-<access key>.  Files are stored in the bucket
+with a key based on the linux formatted absolute pathname for the file to be 
+stored. 
+
+=back
+
+=head1 SERVICE COMMANDS & OPTIONS
+
+=over 5
+
+=item B<xtandem>
+
+Analyze one or more mzML/mzXML data files with the X!Tandem tandem mass spectra
+identification program. Expects a file named  "tandem.params" to be in the same
+directory as the input files unless overridden with the B<-p, --params> option.
+See the X!Tandem documentation for more information on the format of this file.
+
+Also it is not necessary to provide the I<E<lt>spectrum, pathE<gt>> or 
+I<E<lt>S<output, path>E<gt>>  parameters in the params file as these will
+automatically be filled in for each input spectra file.
+
+=item B<comet>
+
+Analyze one or more mzML/mzXML data files with the Comet tandem mass spectra
+identification program. Expects a file named  "comet.params" to be in the same
+directory as the input files unless overridden with the B<-p, --params> option.
+See the Comet documentation for more information on the format of this file.
+
+=item B<omssa>
+
+Analyze one or more mzML/mzXML data files with the OMSSA tandem mass
+spectra identification program.
+
+=item B<inspect>
+
+Analyze one or more mzML/mzXML data files with the InsPect tandem mass
+spectra identification program.
+
+=item B<myrimatch>
+
+Analyze one or more mzML/mzXML data files with the MyriMatch tandem mass
+spectra identification program.
+
+Additional myrimatch command line options can be spectifed by adding them to 
+the parameters file using a "#$" prefix as so:
+
+#$ -cpus 8
+
+=item B<rnaseqpdb>
+
+Generate a protein database for use in MS/MS peptide identifications from
+the results RNA Seq read sequences.
+
+=item B<-p, --params FILE>
+
+Specify the parameters file to use in a service.  Normally this program will 
+look for a file named "<service>.params" in the local current directory to use
+to provide the parameters to the service.
+
+
+=item B<-o, --outdir DIRECTORY>
+
+Write all of the service output to this directory.
+
+=back
+
+=head1 CLIENT DAEMON COMMAND & OPTIONS
+
+The client daemon is a background process that handles all of the necessary file
+uploads, service queueing, and file downloads between the AWS cloud and your
+local system.
+
+=over 5
+
+=item B<start>
+
+Starts the background process.  This is required to be run either prior to
+or after submitting one or more services to perform.
+
+=item B<stop>
+
+Stops the background process.  The background process will automatically stop
+after no new services have been run after a period of time.
+
+=item B<-f, --foreground>
+
+Do not fork and run in the background.  Useful in combination with 
+the B<--verbose> option.  Only applies to the "start" command.
+
+=item B<-l, --log FILE>
+
+Redirect output of client process to file.  Useful in combination with 
+the B<--verbose> option.  Only applies to the "start" command.
+
+=item B<-P, --maxprocs NUM>
+
+Specify the number of file transfers to perform in parallel.  Depending on your
+network connection and I/O bandwidth you may be able to increase the performance
+of file transfers by increasing the number of parallel operations. 
+
+=back
+
+=head1 STATUS COMMANDS & OPTIONS
+
+=over 5
+
+=item B<status>
+
+Print the status of the client background process, any Amazon EC2 instances, 
+SQS queues and S3 objects managed by this program. 
+
+=item B<report>
+
+Output a report containing details about all completed services.  Completed
+services are stored in a "done" SQS queue and are retained for up to 14 days.
+
+=item B<--xml>
+
+Change formatting of output from text to XML.
+
+=back
+
+=head1 EC2 COMMAND & OPTIONS
+
+=over 5
+
+=item B<launch>
+
+Immediately launches one or more EC2 instances.   You can start EC2 instances at
+any time and add more instances to handle services that are already in progress. 
+See B<--ec2-num> on how to specify the number of instances to launch otherwise
+it defaults to 1.
+
+Note: that any instance that does see any upload or service messages in their
+respective queues in a 30 minute period will automatically shut itself down.  
+
+=item B<terminate>
+
+Stops one or more EC2 instances.  The number of instances to stop can be 
+specified using the B<-n,--num> option and if  it isn't provided it will stop
+all EC2 instances.  Which instance(s) get stopped is random and no precaution is
+taken to prevent stopping an instance that might be running a service.
+
+=item B<--ec2-num NUM>
+
+Used to specify the number of EC2 instances to launch or terminate.
+
+=item B<--ec2-max NUM>
+
+The maximum number of EC2 instances to allow.  The default is 1.  The client
+will automatically launch additional EC2 instances up to this maximum as needed
+based on ratio of pending to active services (see B<--ec2-util> option).
+
+Note that new Amazon users are limited to a maximum of 20 concurrent instances.
+If you wish to run more than that this limit you can contact Amazon Web Services
+and request an increase to your Amazon EC2 limit using their on-line form.
+
+=item B<--ec2-util RATIO>
+
+If the ratio of pending services to started/active instances is less than this
+cutoff then more EC2 instances will be automatically requested.  The default 
+value is 0.25.  Using a higher number means more EC2 nodes will potentially be
+launched  increasing the computation resources and cost but decreasing the 
+overall time but with the risk of overallocating instances. A smaller number 
+will decrease the overall computation resources and cost but potentially 
+increase the overall time of the execution.
+
+=item B<--ec2-id ID>
+
+This option can be used to specify the EC2 image to start when starting new
+instances. The default EC2 image that is used is a public image created that
+contains TPP and a number of open source MS/MS search programs.  Use this 
+option with care as you'll have to ensure that you have a similar configuration
+and software installed in the image specified in order for the searches to run.
+
+=item B<--ec2-type TYPE>
+
+Specify the type of EC2 instance to run.  At the time of this writing the list
+of available types include: m1.large, m1.xlarge, m2.xlarge, m2.2xlarge, 
+and m2.4xlarge.  See Amazon Web Services for the most update to date list of
+types of instances.  The default type used is "m2.xlarge".
+
+=item B<--ec2-key NAME>
+
+Specify the name of the key pair to use with EC2 instances. Key pairs are 
+public/private key pairs created in EC2 and used to access the instance
+through SSH. 
+
+=item B<--ec2-group NAME>
+
+Specify the name of the EC2 security group to use for an EC2 instance.  By 
+default awstpp will create a default security group named "AMZTPP" if one does
+not already exist.  This rule will be defined with no default inbound rules
+and it is up to the user to add rules (such as SSH) to the group.  Please see
+the Amazon EC2 documentation for more information about security groups.
+
+=item B<--ec2-spot PRICE>
+
+Specify to use EC2 spot instances instead of regular EC2 instances where
+price is the desired spot price in USD.  All spot instances will be started
+up with a type of "one-time", go into affect immediately, and never expire.
+
+=back
+
+=head1 MISCELLANEOUS COMMANDS & OPTIONS
+
+=over 5
+
+=item B<realclean>
+
+Removes all files, queues, and messages from Amazon Web Services. Note that due
+to Amazon restrictions, you will have to wait 60 seconds before you can submit
+new commands after doing a deletion.  B<WARNING!> This will delete all data that
+is in your S3 bucket, including the bucket.
+
+=back
+
+=head1 GETTING STARTED
+
+To use this program to run TPP on the Amazon Web Services cloud you'll have to 
+first have an Amazon Web Services account. If you don't already have an account,
+its easy to create one by going to http://aws.amazon.com and clicking on the 
+"Sign Up Now" button. After creating an account (and registering your credit
+card or other form of payment) you'll have to also sign up to use the EC2, S3 
+and SQS products by choosing the product under the each products menu and 
+clicking on  the "Sign Up For Amazon ..." buttons.
+
+Once you've got an account you then need to provide your public and private 
+access identifiers so this program can access Amazon Web Services.   To view the
+values of your identifiers, sign into Amazon and then choose the access 
+identifiers  option under the Your Account menu.  This will take you to a page
+that will show both your access key id and your secret access key. 
+
+You can provide your credentials in one of three ways: 1) via the command line
+using the --access-key, --secret-key, --region, and --bucket flags, 2) using
+the enviroment variables EC2_ACCESS_KEY, EC2_SECRET_KEY, EC2_REGION and
+S3_BUCKET, or  3) using a secrets file in your home directory.  To make it easy
+to manage this file there are two commands "save" and "delete" which will save
+the command line options to the file or delete the file.  The default path for
+this file is <your home directory>/.awssecret, which can be overridden by using
+the AWS_CREDENTIAL_FILE enviroment variable.
+
+You can easily test you have the correct credentials to access to Amazon Web 
+Services using the B<scheck> command as so:
+
+=over 5
+
+S<amztpp check>
+
+=back
+
+If you've correctly setup your credentials a report should be generated
+indicated that the program was able to verify them with AWS.
+
+=head1 RUNNING A SEARCH
+
+To run a search on the cloud you need to provide two things, a search parameters
+file and one or more mzXML formatted files containing mass spectroscopy data. 
+
+You invoke any of the programs as follows:
+
+=over 5
+
+S<amztpp xtandem *.mzML>
+
+=back
+
+This will launch a X!Tandem search on the AWS cloud for each mzML in the current
+directory.  For each file it will start a EC2 instance (up to the max #) and
+then upload the file and any additional auxiliary files into S3.  After all
+files have been uploaded it will then wait for search results to finish, 
+downloading each of them as they are returned from the cloud. If the parameters
+file isn't specified the program will look for a file in the current directory
+for the file "tandem.params".
+
+=head1 AWS Key Credentials
+
+The AWS access key ID and secret access key are credentials required for both 
+access and control of basic Amazon Web Services. An additional region location 
+can be used to specify which AWS region services are launched in. And last a
+bucket name can be provided to specify the S3 bucket to store files in.
+
+Keys can be specified one of three ways (in the order of precedence):
+
+=over 5
+
+=item 1. The command line options B<--access-key>,  B<--secret-key>, 
+ B<--region>, and B<--bucket>.
+
+=item 2. The environment variables EC2_ACCESS_KEY, EC2_SECRET_KEY EC2_REGION,
+and S3_BUCKET.
+
+=item 3. The file ~/.awssecrets, where the first line of this file is your public
+access key, second your secret key, and optionally a third line containing the
+region and a fourth line containing the bucket name.  Since this file contains 
+your AWS access information the permissions should not allow other users to 
+read it.  You can override the location of this file by setting the  environment
+variable AWS_CREDENTIAL_FILE to the location of the file to use.
+
+=back
+
+=head1 ADDITIONAL RESOURCES
+
+Users wishing to have more control over there Amazon Web Services may find
+the following products useful:
+
+=over 5
+
+=item L<https://console.aws.amazon.com/ec2/home/> 
+
+AWS Management Console which provides a web based graphical user interface 
+to your instances.
+
+=item L<http://www.s3fm.com/>
+
+Web based file manager application for Amazon S3.
+
+=item L<http://timkay.com/aws/>
+
+Nice simple command line tool to EC2 and S3
+
+=back
+
+Additional information on the different spectra identification programs and 
+their parameters are available at:
+
+=over 5
+
+=item L<http://www.thegpm.org/tandem/index.html>
+
+X!Tandem open source software.
+
+=item L<http://pubchem.ncbi.nlm.nih.gov/omssa/>
+
+The Open Mass Spectrometry Search Algorithm [OMSSA]
+
+=item L<http://proteomics.ucsd.edu/>
+
+InsPecT: A Proteomics Search Toolkit
+
+=item L<http://www.mc.vanderbilt.edu/root/vumc.php?site=msrc/bioinformatics&doc=27121>
+
+MyriMatch For MS-MS Database Search
+
+=back
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut

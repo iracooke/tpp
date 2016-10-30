@@ -1,0 +1,444 @@
+#!perl
+#
+# Program: TPP AWS Search Tool
+# Author:  Joe Slagel
+#
+# Copyright (C) 2010-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: amztppd 6285 2013-09-20 16:50:03Z slagelwa $
+#
+use strict;
+use warnings;
+
+use Cwd qw( abs_path );
+use Digest::MD5::File qw( file_md5_base64 file_md5_hex );
+use File::Basename;
+use File::Copy;
+use Getopt::Long;
+use IO::File;
+use LWP::Simple;
+use Pod::Usage;
+use POSIX ":sys_wait_h";
+use Sys::Hostname;
+
+use TPP::AWS;
+use TPP::AWS::Credentials qw( credentials );
+use TPP::AWS::Logger qw( $log );
+use TPP::AWS::S3Manager;
+use TPP::AWS::SQSManager;
+use TPP::AWS::Poll;
+
+
+#-- @GLOBALS -----------------------------------------------------------------#
+
+our $REVISION = (q$Revision: 6285 $ =~ /(\d+)/g)[0] || '???'; 
+
+my $prog = basename($0);    # Program name
+my %opts;                   # Program invocation options
+
+my $signal = 0;             # Received signal
+
+my $s3m;
+my $sqsm;
+my $srv;                    # Service being performed
+
+my $awsInstanceID;          # Take a crack at getting our instance id           
+my $mpid;                   # Visibility monitoring PID
+
+
+#-- @MAIN -------------------------------------------------------------------#
+
+$| = 1;                     # Flush STDOUT automatically
+{
+   parseOptions();
+   printVersion() && exit 0     if ( $opts{version} );
+   pod2usage(2)			if ( $opts{help} );
+   pod2usage( -verbose => 2 )	if ( $opts{man} );
+   
+   setupLogging();
+   unlink( $opts{servicelog} ) if ( $opts{servicelog} );
+   
+   $log->info( "$prog $TPP::AWS::VERSION (r$::REVISION)) starting up" );
+   logInstanceInfo();
+ 
+   # AWS Credentials
+   my @keys = credentials( @opts{qw(access-key secret-key region bucket)} );
+   $keys[2] ||= 'us-west-2';
+   unless ( $keys[0] && $keys[1] )
+      {
+      $log->logdie( "missing/invalid AWS credentials" );
+      }
+    
+   # AWS setup
+   $s3m  = TPP::AWS::S3Manager->new()->open( @keys );
+   $sqsm = TPP::AWS::SQSManager->new( @keys[0..2] );
+   
+   # Set working directory to '/'
+   chdir "/" or $log->logdie( "Error: can't chdir to /: $!\n" );
+
+   # Who/where am I?
+   $awsInstanceID = get("http://169.254.169.254/latest/meta-data/instance-id");
+   $log->info( "hostname = " . (eval { hostname } || 'unknown') );
+   $log->info( "AWS instance id = " . ($awsInstanceID || 'unknown') );
+   
+   # Daemonize
+   unless ( $opts{'foreground'} )
+      {
+      if ( my $pid = fork() ) { exit 0 }
+      close $_ for *STDIN, *STDOUT, *STDERR;
+      open( STDIN,  "</dev/null" );
+      open( STDOUT, ">&LOG" ); select( ( select(STDOUT), $| = 1 )[0] );
+      open( STDERR, ">&LOG" ); select( ( select(STDERR), $| = 1 )[0] );
+      $log->{handle} = \*STDERR;
+      POSIX::setsid() or die "Cannot start a new session: $!\n";
+      }
+   $SIG{INT} = $SIG{TERM} = $SIG{HUP} = $SIG{PIPE} = sub { $signal = $_[0] || 99 };
+   
+   # Make sure queues exist
+   $sqsm->createQueues();
+   
+   # Check for previous run
+   if ( my $msgHandle = readMessageHandle() )
+      {
+      $log->warn( "previous message handle found, deleting message" );
+      eval { $sqsm->srvQueue()->DeleteMessage( $msgHandle, 0 ); };
+      $log->error( "unable to delete message $msgHandle" ) if ( $@ );
+      }
+      
+   # Loop processing service requests, quitting before the system has been 
+   # running for an hour (with 2 min of margin)
+   my $poll = TPP::AWS::Poll->new( AFTER => timeleft() - (60 * 2), 
+                                     MAX => (60 * 2) - 2 );
+   $poll->{AFTER} = (58 * 60) if ( $poll->{AFTER} <= (60 * 2 ) );
+   while ( !$signal && !$poll->quit() )
+      {
+      $log->debug( "checking for work to do" );
+      if ( $srv = $sqsm->dequeueService() )
+         {
+         $log->debug( "received service to run" );
+         writeMessageHandle( $srv->{MSG_HANDLE} );
+         startVisibilityMonitor( $srv );
+         $srv->mount();
+         
+         $srv->{SERVER_WTIME} = time();
+         my $retry = $srv->start( $s3m, $sqsm, $opts{servicelog} );
+         $srv->{SERVER_WTIME} = time() - $srv->{SERVER_WTIME};
+            	
+         $retry ? $sqsm->queueService( $srv, 10 * 60 ) 
+                : $sqsm->queueDownload( $srv );
+                
+         $sqsm->deleteMessage( $sqsm->srvQueue(), $srv );
+         $srv = undef;
+         deleteMessageHandle();
+         stopVisibilityMonitor();
+         $poll->{AFTER} = timeleft() - (60 * 2);
+         $poll->{AFTER} = (58 * 60) if ( $poll->{AFTER} <= (60 * 2 ) );
+         $poll->reset();
+         }
+      else
+         {
+         $log->debug( "sleeping " . $poll->interval() );
+         sleep( $poll->next() );
+         }
+      }
+
+   # Cleanup
+   $log->info( "stopping (signal $signal)" );
+   exit 0;
+}
+
+END 
+{ 
+   return unless $log;
+   
+   $log->info( "stopping" );
+   if ( $srv )
+      {
+      $log->error( "ERROR: detected unfinished service!!" );
+      eval { $sqsm->deleteMessage( $sqsm->srvQueue(), $srv ); };
+      }
+      
+   # Save the log file in S3
+   eval { 
+      my ( $name, $path ) = fileparse( $opts{logfile} );
+      # prepend the AWS instance id to the filename to make it unique in S3
+      $name = ($awsInstanceID || 'unknown') . '-' . $name;
+      copy( $opts{logfile}, "$path/$name" ); 
+      $s3m->put( "$path/$name", 1 );
+   } if ( $opts{logfile} && $s3m );
+   
+   $log->info( "stopped" );
+}
+
+
+#-- @SUBROUTINES ------------------------------------------------------------#
+
+#
+# Processes the command line arguments and initialize the global %opts
+# variable.
+#
+sub parseOptions
+   {
+   # Get options...
+   my @flags;
+   push @flags, qw( help|h|? man V|version verbose|v ); # Std flags
+   push @flags, qw( access-key=s secret-key=s );	# AWS credentials
+   push @flags, qw( region=s bucket=s );	        # ...more
+   push @flags, qw( foreground|f logfile|l=s servicelog|s=s );
+   push @flags, qw( shutdown|S );
+   Getopt::Long::Configure( "bundling" );
+   GetOptions( \%opts, @flags ) || pod2usage(2);
+
+     
+   pod2usage( "$prog: too many arguments") if ( @ARGV );
+
+   $log->{level} = 1 if ( $opts{verbose} );   		# TODO: fix this
+   }
+   
+#
+# Output program version
+#
+sub printVersion
+   {
+   print "$prog: version $TPP::AWS::VERSION (r$::REVISION)\n";
+   }
+
+sub setupLogging
+   {
+   if ( $opts{verbose} )
+      {
+      $log->{level} = 1;                # debug
+      $log->{fmt}   = '[%d] (%p) %m';
+      }
+   else
+      {
+      $log->{level} = 2;                # info
+      $log->{fmt}   = "$prog: \%m";
+      }
+      
+   if ( $opts{logfile} )
+      {
+      $opts{logfile} = abs_path( $opts{logfile} );
+      open( LOG, ">>$opts{logfile}" ) 
+         or $log->logdie( "can't open file $opts{logfile}: $!" );
+      $log->{handle} = \*LOG;
+      $log->{fmt}    = '[%d] (%p) %C: %m';
+      $log->{handle}->autoflush( 1 );
+      }
+   }
+   
+#
+# Handle saving message information in a local file
+#
+sub readMessageHandle
+   {
+   $log->debug( "reading any message handle" );
+   open( MSG, "</tmp/amztppd.msg" ) or return undef; 
+   my $handle = <MSG>;
+   close( MSG );
+   return $handle;
+   }
+   
+sub writeMessageHandle
+   {
+   my ( $handle ) = @_;
+   $log->debug( "writing message handle" );
+   if ( open( MSG, ">/tmp/amztppd.msg" ) )
+      {
+      print MSG $handle;
+      close( MSG );
+      }
+   else
+      {
+      $log->error( "can't open file 'messagehandle': $!") 
+      }
+   }
+      
+sub deleteMessageHandle
+   {
+   $log->debug( "deleting message handle" );
+   unlink( "/tmp/amztppd.msg" ) or 
+      $log->error( "deleting file '/tmp/amztppd.msg': $!" );
+   }
+   
+#
+# Manage a subprocess for periodically updating a message's visibility
+#
+sub startVisibilityMonitor
+   {
+   my ( $srv ) = @_;
+   
+   if ( $mpid = fork() )
+      {
+      $log->debug( "visibility monitor (PID:$mpid) started" );
+      return $mpid;             # parent process comes here	
+      }
+   elsif( (defined $mpid) && ($mpid == 0) )
+      {
+      $SIG{INT} = $SIG{TERM} = $SIG{HUP} = $SIG{PIPE} = 'DEFAULT';
+      while ( 1 )               # extend visibility every 5 minutes
+         {
+         sleep( (5 * 60) - 15 );
+         $sqsm->extendService( $srv, (5 * 60) );
+         }
+      exit( 0 );                # should never get here
+      }
+   else
+      {
+      $log->logdie( "cannot fork background process: $!" );
+      }
+   }
+   
+sub stopVisibilityMonitor
+   {
+   if ( !$mpid )
+      {
+      $log->warn( "no visibility monitor to terminate" );	
+      return;
+      }
+
+   if ( kill( 15, $mpid ) )
+      {
+      if ( my $pid = waitpid( $mpid, 0 ) )
+         {
+         $log->debug( "visibility monitor(PID:$pid) terminated" );	
+         return;
+         }
+      }
+   $log->error( "visibility monitor(PID:$mpid) not terminated" );	
+   }
+
+#
+# Return the remaining time left for this node.  EC2 instances are paid for by
+# the hour.
+#
+sub timeleft
+   {
+   open( UPTIME, "</proc/uptime" )      
+      or $log->logdie( "can't open /proc/uptime: $!\n" );
+   my ( $uptime ) = split( ' ', <UPTIME> );
+   close( UPTIME );
+   
+   my $remain = int( (3600 - ($uptime % 3600)) );
+   $log->debug( "timeleft: uptime $uptime remaining $remain\n" );
+   return( $remain );
+   }
+   
+sub logInstanceInfo
+   {
+   my $ua  = LWP::UserAgent->new( timeout => 2 );
+   my $url = 'http://169.254.169.254/latest/meta-data';
+   $log->info( "AMI ID "   . $ua->get("$url/ami-id")->decoded_content );
+   $log->info( "EC2 Type " . $ua->get("$url/instance-type")->decoded_content );
+
+   foreach ( `cat /proc/cpuinfo | grep "model name"` )
+      {
+      chomp;
+      $log->info( $_ );
+      }
+   }
+   
+#-- @DOCUMENTATION ----------------------------------------------------------#
+
+__END__
+
+=head1 NAME
+
+amztppd - server daemon to execute TPP Amazon Web Services
+
+=head1 SYNOPSIS            
+
+amztppd [options]
+
+ Options:
+   -h, --help               print this help
+   --man		    full documentation
+   --version                print version information and exit
+   -v, --verbose	    print verbose information when running
+   -f, --foreground	    do not fork in the background
+   -l, --logfile <file>     log file path
+   -s, --servicelog <file>  duplicate service's log file
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<amztppd> is a program to execute TPP Amazon Web Services.  It is intended 
+to run in the background checking a Amazon SQS "request" for incoming TPP
+service requests. For each request received it will then instantiate the
+service, and invoke its run method to perform whatever service was requested
+(e.g. download files, run a search, and upload files back to S3).
+
+Note: This program should only be run on systems that have the latest TPP 
+installed.
+
+Note: It is possible to invoke more than one copy of the daemon in order to 
+take  advantage of modern systems with multiple cores (though why you'd want
+to is a good question as most search engines are multi-threaded already).
+
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Display the full man page documentation and exit.
+
+=item B<--version>
+
+Displays the program version.
+
+=item B<-f, --foreground>
+
+Do not fork and run in the background (do not run as daemon).  Useful in 
+combination with B<--verbose> option in order to debug.
+
+=item B<-v, --verbose>
+
+Output verbose debugging information to console (or log).
+
+=item B<-l, --logfile file>
+
+Log output of this daemon to the file specified.
+
+=item B<-s, --servicelog file>
+
+Each service writes its own log file when it is invoked.  This option can be
+used to create a link to this file someplace else on the filesystem when the
+service is being executed.  Useful for posting the output of a service when
+its running on a webserver so live results can be obtained.
+
+=back
+
+=cut

@@ -1,0 +1,283 @@
+#!/tools/bin/perl -w 
+#
+# Copyright (C) 2010 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 401 Terry Ave N
+# Seattle, WA  98109  USA
+# jslagel@systemsbiology.org
+#
+use strict;
+use warnings;
+
+use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
+
+use TPP::AWS;
+
+
+#-- @GLOBALS ------------------------------------------------------------------#
+
+our $REVISION = (q$Revision: 6285 $ =~ /(\d+)/g)[0] || '???'; 
+
+my $prog = basename($0);        # Program name
+my %opts;                       # Program invocation options
+
+
+#-- @MAIN ---------------------------------------------------------------------#
+
+$| = 1;                         # Flush STDOUT automatically
+{
+   parseOptions();
+
+   pod2usage( "$prog: too few/many arguments") unless ( @ARGV == 2 );
+
+   if ( $opts{ec2} || $opts{sqs} )
+      {
+      my $ec2beg = readEC2( $ARGV[0] );
+      my $ec2end = readEC2( $ARGV[1] );
+      my $diff   = diff( $ec2beg, $ec2end );
+
+      my %s;
+      print "Service, Operation, UsageType, StartTime, EndTime, UsageValue\n";
+      foreach my $r ( @$diff )
+         {
+         print join(",", map { $r->{$_} } qw(Service Operation UsageType StartTime EndTime UsageValue) );
+         print "\n";
+
+         $s{"$r->{Operation}::$r->{UsageType}"} += $r->{UsageValue};
+         }
+      print "\n";
+      foreach ( keys %s )
+         {
+         print "$_,$s{$_}\n";
+         }
+      }
+
+   if ( $opts{s3} )
+      {
+      my $s3beg = readS3( $ARGV[0] );
+      my $s3end = readS3( $ARGV[1] );
+      my $diff  = diff( $s3beg, $s3end );
+
+      my %s;
+      print "Service, Operation, Resource, UsageType, StartTime, EndTime, UsageValue\n";
+      foreach my $r ( @$diff )
+         {
+         print join(",", map { $r->{$_} } qw(Service Operation Resource UsageType StartTime EndTime UsageValue) );
+         print "\n";
+
+         $s{"$r->{Operation}::$r->{Resource}::$r->{UsageType}"} += $r->{UsageValue};
+         }
+      print "\n";
+      foreach ( keys %s )
+         {
+         print "$_,$s{$_}\n";
+         }
+      }
+
+   exit 0;
+}
+
+
+#-- @SUBROUTINES ------------------------------------------------------------#
+
+#
+# Processes the command line arguments and initialize the global %opts
+# variable.
+#
+sub parseOptions
+   {
+   # Get options...
+   my @flags;
+   push @flags, qw( help|h|? version|V verbose|v ); # Standard program flags
+   push @flags, qw( ec2 s3 sqs );
+   Getopt::Long::Configure( "bundling" );
+   GetOptions( \%opts, @flags ) || pod2usage(2);
+
+   # Standard flags
+   pod2usage(2)                 if ( $opts{help} );
+   printVersion() && exit       if ( $opts{version} );
+   }
+
+#
+# Output program version
+#
+sub printVersion
+   {
+   print "$prog: version $TPP::AWS::VERSION (r$::REVISION)\n";
+   }
+
+#
+# Outputs information to STDERR, only if the verbose flag is set
+#
+sub debug
+   {
+   print STDERR @_ if ( $opts{verbose} );       
+   }
+
+sub diff
+   {
+   my ( $begList, $endList ) = @_;
+
+   # Diff...
+   my @diff;
+END: foreach my $end ( @$endList )
+      {
+      my %rev = reverse %$end;
+      BEG: foreach my $beg ( @$begList )
+         {
+         if ( grep ! exists $rev{$_}, values %$beg )
+            {
+            next BEG;                   # different records
+            }
+         else
+            {
+            next END;                   # same records
+            }
+         }
+      push @diff, $end;                 # didn't find any matching in beg
+      }
+   return \@diff;
+   }
+
+sub readEC2
+   {
+   my ( $path ) = @_;
+   my @ec2 = ();
+
+   open( EC2, "<$path" ) || die( "$prog: can't open file $path: $!\n" );
+
+   my $line = 0;
+   while ( <EC2> )
+      {
+      chomp;
+      $line++;
+      if ( $line == 1 )
+         {
+         /Service, Operation, UsageType, Resource, StartTime, EndTime, UsageValue/ or
+            die( "$prog: $path header doesn't match EC2 report\n" );
+         next;
+         }
+      next if /^$/;
+
+      my @a = split /,/;
+      push @ec2, {
+         Service    => $a[0],
+         Operation  => $a[1],
+         UsageType  => $a[2],
+         Resource   => $a[3],
+         StartTime  => $a[4],
+         EndTime    => $a[5],
+         UsageValue => $a[6],
+         };
+      }
+   close( EC2 );
+   return \@ec2;
+   }
+
+sub readS3
+   {
+   my ( $path ) = @_;
+   my @s3 = ();
+
+   open( S3, "<$path" ) || die( "$prog: can't open file $path: $!\n" );
+
+   my $line = 0;
+   while ( <S3> )
+      {
+      chomp;
+      $line++;
+      if ( $line == 1 )
+         {
+         /Service, Operation, UsageType, Resource, StartTime, EndTime, UsageValue/ or
+            die( "$prog: $path header doesn't match S3 report\n" );
+         next;
+         }
+      next if /^$/;
+
+      my @a = split /,/;
+      push @s3, {
+         Service    => $a[0],
+         Operation  => $a[1],
+         UsageType  => $a[2],
+         Resource   => $a[3],
+         StartTime  => $a[4],
+         EndTime    => $a[5],
+         UsageValue => $a[6],
+         };
+      }
+   close( S3 );
+   return \@s3;
+   }
+
+
+#-- @DOCUMENTATION ----------------------------------------------------------#
+
+__END__
+
+=head1 NAME
+
+amzcost - Output the differences between Amazon Web Services usage reports
+
+=head1 SYNOPSIS            
+
+amzcost [options] <report1> <report2>
+
+ Options:
+   -h, --help           print this help
+   -V, --version        print version information and exit
+   -v, --verbose        print verbose information when running
+
+   --ec2                AmazonEC2 reports
+   --s3                 AmazonS3 reports
+   --sqs                AmazonSQS reports
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h, --help>
+
+Print a brief help message and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<amzcost> outputs the difference between two Amazon Web Services reports.
+
+=head1 OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Display the full man page documentation and exit.
+
+=item B<-v, --version>
+
+Print diagnostic information.
+
+=back
+
+=cut

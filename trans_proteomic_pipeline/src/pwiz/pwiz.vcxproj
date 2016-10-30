@@ -1,0 +1,463 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Profile|Win32">
+      <Configuration>Profile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{13AFF175-5354-4A15-8580-BD1A2D8257D4}</ProjectGuid>
+    <RootNamespace>pwiz</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+    <Import Project="$(SolutionDir)tpp_common_release.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+    <Import Project="$(SolutionDir)tpp_common_profile.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+    <Import Project="$(SolutionDir)tpp_common_debug.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Message>generate pwiz Version.cpp files as needed</Message>
+      <Command>$(ProjectDir)/generate-version.pl</Command>
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>XML_STATIC;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Debug/pwiz.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>XML_STATIC;_USRDLL;_CONSOLE;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_DEBUG;_WIN32;_SCL_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;WITHOUT_MZ5;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeaderOutputFile>.\Debug/pwiz.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\$(Configuration)\pwiz/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4180;4065;4244;4355;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>XML_STATIC;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug/pwiz.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Message>generate pwiz Version.cpp files as needed</Message>
+      <Command>$(ProjectDir)/generate-version.pl</Command>
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>XML_STATIC;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\$(Configuration)/pwiz.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PWIZ_USER_VERSION_INFO_H=&lt;TPPVersion.h&gt;;XML_STATIC;_USRDLL;_CONSOLE;WIN32;NDEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES;WITHOUT_MZ5;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeaderOutputFile>.\$(Configuration)/pwiz.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\$(Configuration)/</AssemblerListingLocation>
+      <ObjectFileName>.\$(Configuration)\pwiz/</ObjectFileName>
+      <ProgramDataBaseFileName>.\$(Configuration)/</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <DisableSpecificWarnings>4180;4065;4244;4355;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>XML_STATIC;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <AdditionalOptions>/ignore:4006 /ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\$(Configuration)/pwiz.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
+    <PreBuildEvent>
+      <Message>generate pwiz Version.cpp files as needed</Message>
+      <Command>$(ProjectDir)/generate-version.pl</Command>
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>XML_STATIC;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\$(Configuration)/pwiz.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PWIZ_USER_VERSION_INFO_H=&lt;TPPVersion.h&gt;;XML_STATIC;_USRDLL;_CONSOLE;WIN32;NDEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES;WITHOUT_MZ5;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeaderOutputFile>.\$(Configuration)/pwiz.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\$(Configuration)/</AssemblerListingLocation>
+      <ObjectFileName>.\$(Configuration)\pwiz/</ObjectFileName>
+      <ProgramDataBaseFileName>.\$(Configuration)/</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <DisableSpecificWarnings>4180;4065;4244;4355;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>XML_STATIC;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <AdditionalOptions>/ignore:4006 /ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\$(Configuration)/pwiz.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\AminoAcid.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\BinaryDataEncoder.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\Chemistry.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\ChemistryData.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\ChromatogramList_ABI.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\ChromatogramList_Bruker.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\ChromatogramList_mzML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Thermo\ChromatogramList_Thermo.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Waters\ChromatogramList_Waters.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\cv.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\CVTranslator.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\DefaultReaderList.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Diff.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Diff.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\diff_std.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Digestion.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ExtendedReaderList.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\Filesystem.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Index_mzML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\IO.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeCalculator.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeEnvelopeEstimator.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeTable.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\IterationListener.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\LegacyAdapter.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Modification.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\MSData.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\MSDataFile.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\MZTolerance.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\obo.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\ParamTypes.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\parse_isotopes.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\misc\PeakData.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Peptide.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\ProteinListCache.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\ProteomeData.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\ProteomeDataFile.cpp" />
+    <ClCompile Include="pwiz_Base64.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\RAMPAdapter.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\random_access_compressed_ifstream.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Reader.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Reader.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\Reader_ABI.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\Reader_ABI_Detail.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\T2D\Reader_ABI_T2D.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Agilent\Reader_Agilent.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\Reader_Bruker.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\Reader_Bruker_Detail.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Reader_FASTA.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Thermo\Reader_Thermo.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Thermo\Reader_Thermo_Detail.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\Reader_Waters.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\References.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\minimxml\SAXParser.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz_aux\msrc\utility\vendor_api\thermo\ScanFilter.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Serializer_FASTA.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_MGF.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_MSn.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_mzML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_mzXML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\SHA1.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\SHA1Calculator.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumInfo.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumIterator.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\SpectrumList_ABI.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\T2D\SpectrumList_ABI_T2D.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\SpectrumList_Bruker.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_BTDX.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_MGF.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_MSn.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_mzML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_mzXML.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Thermo\SpectrumList_Thermo.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\SpectrumList_Waters.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumListCache.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumListFactory.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\libraries\libsvm-3.0\svm.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\Unimod.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\proteome\Version.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.xdc</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\Version.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Version.cpp" />
+    <ClCompile Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\minimxml\XMLWriter.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\proteome\AminoAcid.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\proteome\auto_vector.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\Base64.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\BinaryDataEncoder.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\misc\CalibrationParameters.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\CharIndexedVector.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\proteome\Chemistry.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\proteome\ChemistryData.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\ChromatogramList_ABI.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\ChromatogramList_Bruker.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\ChromatogramList_mzML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Thermo\ChromatogramList_Thermo.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Waters\ChromatogramList_Waters.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\COMInitializer.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\cv.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\CVTranslator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\dacserver_4-1.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\DefaultReaderList.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Diff.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\endian.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\examples.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\Exception.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ExtendedReaderList.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\Filesystem.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\misc\FrequencyData.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\FrequencyEstimator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\FrequencyEstimatorPhysicalModel.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\FrequencyEstimatorSimple.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz_tools\common\FullReaderList.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Index_mzML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\IntegerSet.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\IO.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeCalculator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeEnvelopeEstimator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\IsotopeTable.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\IterationListener.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\LegacyAdapter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\common\LocalMaximumPeakDetector.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\MagnitudeLorentzian.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\MS2Deisotoper.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\MS2NoiseFilter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\MSData.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\passive\MSDataCache.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\MSDataFile.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\MSDataMerger.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\chemistry\MZTolerance.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\obo.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\ParameterEstimator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\ParametrizedFunction.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\common\ParamTypes.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\misc\PeakData.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\PeakDetector.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\peakdetect\PeakDetector.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\PeakDetectorMatchedFilter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\PeakDetectorNaive.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\peakdetect\PeakFamilyDetector.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\peakdetect\PeakFamilyDetectorFT.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\PrecursorMassFilter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\PrecursorRecalculator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\PrecursorRecalculatorDefault.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\RAMPAdapter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\random_access_compressed_ifstream.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz_aux\msrc\utility\vendor_api\thermo\RawFile.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz_aux\msrc\utility\vendor_api\thermo\RawFileCOM.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz_aux\msrc\utility\vendor_api\thermo\RawFileValues.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Reader.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\Reader_ABI.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\Reader_ABI_Detail.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\T2D\Reader_ABI_T2D.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Agilent\Reader_Agilent.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\Reader_Bruker.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\Reader_Bruker_Detail.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Reader_Thermo.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Reader_Thermo_Detail.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\Reader_Waters.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\Reader_Waters_Detail.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\References.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\misc\SampleDatum.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SavitzkyGolaySmoother.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\minimxml\SAXParser.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz_aux\msrc\utility\vendor_api\thermo\ScanFilter.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_MGF.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_MSn.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_mzML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Serializer_mzXML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\SHA1.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\SHA1_ostream.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\SHA1Calculator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SHA1OutputObserver.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumInfo.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumIterator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\SpectrumList_ABI.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\ABI\T2D\SpectrumList_ABI_T2D.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\Bruker\SpectrumList_Bruker.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_BTDX.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_ChargeStateCalculator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_Filter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_MetadataFixer.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_MGF.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_MSn.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_mzML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_MZWindow.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumList_mzXML.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_NativeCentroider.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_PeakFilter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_PeakPicker.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_PrecursorRecalculator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_PrecursorRefine.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumList_Sorter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\SpectrumList_Thermo.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\vendor_readers\waters\SpectrumList_Waters.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\SpectrumListCache.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumListFactory.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\SpectrumListWrapper.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\libraries\libsvm-3.0\svm.h" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\TextWriter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\spectrum_processing\ThresholdFilter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\Timer.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\TruncatedLorentzian.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\TruncatedLorentzianEstimator.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\frequency\TruncatedLorentzianParameters.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\misc\unit.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\Version.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\data\msdata\Version.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\Version.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\utility\minimxml\XMLWriter.hpp" />
+    <ClInclude Include="..\..\extern\ProteoWizard\pwiz\pwiz\analysis\common\ZeroSampleFiller.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\extern\boost_vc10.vcxproj">
+      <Project>{be1f900d-7935-4e04-9944-b5bea5d11f65}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\extern\zlib.vcxproj">
+      <Project>{0137730d-7640-4484-94ce-465952478a6d}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\regenerate_VersionInfo\regenerate_versionInfo.vcxproj">
+      <Project>{11a53f53-bd1e-4383-9e3b-18069063d71a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties DevPartner_IsInstrumented="0" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

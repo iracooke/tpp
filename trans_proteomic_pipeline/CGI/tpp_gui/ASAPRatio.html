@@ -1,0 +1,24 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<style type="text/css" title="text/css">
+	@import url(tpp_gui.css);
+</style>
+	<title>ASAPRatio</title>
+</head>
+<body>
+<h2>ASAPRatio</h2>
+<p>Automated Statistical Analysis on Protein Ratio (ASAPRatio) calculates the relative abundances of proteins and the corresponding confidence intervals from ICAT-type ESI-LC/MS data. ASAPRatio first uses a Savitzky-Golay smoothing filter to reconstruct LC spectra of a peptide and its partner in a single charge state, subtracts background noise from each spectrum, and calculates light:heavy ratio of the peptide in that charge state. The ratios of the same peptide in different charge states are averaged and weighted by the corresponding spectrum intensity to obtain the peptide light:heavy ratio and its error. Subsequently, all unique peptides identified for a given protein are collected, their ratios and errors calculated, outliers are checked for using Dixon's tests, and the relative abundance and confidence interval for the protein are calculated by applying statistics for weighed samples. A byproduct of the software is to identify outlier peptides which may be misidentified or, more interestingly, post-translationally modified.  ASAPRatio goes beyond XPRESS in that does background subtraction, error analysis, and provides a criterion for protein profiling.</p>
+<p>ASAPRatio can be used to compare the concentrations of peptides and proteins from two samples that were labeled with amino acid specific labels that are different in weight.  The labeled samples must be mixed prior to LC-MS/MS analysis.  The most connon way to analyze this sample would be to search it with the light label specified as a static modification in the the database search software parameters and the heavey label specified as a variabal midification in the database search software. For this type of experiment the IPP user should specify the "Labeled Amino Acids" which are used for quantitation 
+</p>
+<p>Static modification quantitation experiments are experiments in which the data is searched twice once specifying the light modification as a static modification and once specifying the heavy modification as a static modification.  The term static modification quantitation is used because a static modification is used by the search software instead of a varable modification to identify peptides with the heavy label.  For this type of experiment the IPP user should specify the the "Labeled Amino Acids" and check the "Static Modification quatitation" box.  Under some experimental curcumstances the IPP user should also fill in the "Specified label mass" with the amino acids labled for quantitaiton and the total mass of the light labeled amino acid.  It is best to try your experiment without filling out the "Specified label mass" section first.  
+
+</p>
+<ol type="1">
+	<li>A. I. Nesvizhskii, A. Keller, E. Kolker and R. Aebersold "A Statistical Model for Identifying Proteins by Tandem Mass Spectrometry" Anal. Chem. 2003, 75, 4646-4658.</li>
+</ol>
+
+</body>
+</html>

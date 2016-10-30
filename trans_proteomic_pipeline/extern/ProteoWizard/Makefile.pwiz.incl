@@ -1,0 +1,295 @@
+
+#
+# Proteowizard build rules are kept in its own Makefile, to be included in 
+# TPP's Makefile.incl. We're using our own build rules as the bjam/GNU autotool 
+# mechanism in Proteowizard doesn't appear to be working correctly with the
+# minimial Proteowizard source tarball.
+#
+
+PWIZ_SRC  = $(PWIZ_DIR)/pwiz
+PWIZ_INCL = -iprefix $(PWIZ_SRC)/ -iwithprefix pwiz/data/msdata \
+            -iwithprefix pwiz/data -I$(PWIZ_SRC) -iwithprefix pwiz  \
+            -iwithprefix pwiz/utility/misc -iwithprefix pwiz/utility/math \
+            $(BOOST_INCL) -iwithprefix libraries/boost_aux \
+            -I$(SRC_ROOT)Parsers/ramp  -iwithprefix libraries/libsvm-3.0 \
+            -DWITHOUT_MZ5
+
+PWIZ_OBJ_ARCH = $(OBJ_ARCH)/pwiz
+PWIZ_LIB      = $(OBJ_ARCH)/libpwiz.a
+
+
+#
+# Top level
+#
+.PHONY: pwiz
+
+ifeq (${ARCH_FAMILY},mingw)
+   pwiz : $(PWIZ_LIB) $(OBJ_ARCH)/pwiz-win32
+else
+   pwiz : $(PWIZ_LIB) msconvert idconvert 
+endif
+
+
+#
+# Generate Proteowizard+TPP version files
+#
+
+# Version info lives in the bjam root file
+PWIZ_VERSION_CPP := $(PWIZ_SRC)/pwiz/Version.cpp \
+                    $(PWIZ_SRC)/pwiz/data/identdata/Version.cpp \
+                    $(PWIZ_SRC)/pwiz/data/msdata/Version.cpp \
+                    $(PWIZ_SRC)/pwiz/data/Version.cpp \
+                    $(PWIZ_SRC)/pwiz/analysis/Version.cpp
+
+$(PWIZ_VERSION_CPP) : $(PWIZ_SRC)/Jamroot.jam
+	 perl $(PWIZ_DIR)/generate-version.pl
+
+
+# Uses VPATH to find the source for the pwiz targets 
+VPATH += $(PWIZ_SRC) \
+         $(PWIZ_ SRC)/pwiz/data/msdata $(PWIZ_SRC)/pwiz/utility/minimxml $(PWIZ_SRC)/pwiz/utility \
+         $(PWIZ_SRC)/pwiz/utility/misc $(PWIZ_SRC)/pwiz/utility/math $(PWIZ_SRC) $(PWIZ_SRC)/pwiz \
+         $(PWIZ_SRC)/pwiz/utility/vendor_api $(PWIZ_SRC)/pwiz/utility/vendor_api/thermo \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers $(PWIZ_SRC)/pwiz/data/vendor_readers/Thermo \
+         $(PWIZ_SRC)/pwiz_aux/msrc/utility/vendor_api/thermo \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/Agilent $(PWIZ_SRC)/pwiz_tools/commandline \
+         $(PWIZ_SRC)/pwiz_tools/common $(PWIZ_SRC)/pwiz_aux/msrc/data/vendor_readers/Bruker \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/Waters \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/ABI \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/ABI/T2D \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/Bruker \
+         $(PWIZ_SRC)/pwiz/data/vendor_readers/Reader_Shimadzu \
+         $(PWIZ_SRC)/libraries/libsvm-3.0 \
+         $(PWIZ_SRC)/pwiz/analysis/spectrum_processing $(PWIZ_SRC)/pwiz/analysis/frequency \
+         $(PWIZ_SRC)/pwiz/analysis/passive $(PWIZ_SRC)/pwiz/analysis/peakdetect $(PWIZ_SRC)/pwiz/utility/proteome \
+         $(PWIZ_SRC)/pwiz/data/misc $(SRC_ROOT)/pwiz $(PWIZ_SRC)/pwiz_tools/common $(PWIZ_SRC)/pwiz/analysis/common \
+         $(PWIZ_SRC)/pwiz/utility/chemistry $(PWIZ_SRC)/pwiz/data/proteome $(PWIZ_SRC)/pwiz/data/common
+
+
+# List of pwiz object files
+OBJS_PWIZ = \
+            $(PWIZ_OBJ_ARCH)/libraries/libsvm-3.0/svm.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/common/ExtraZeroSamplesFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/common/LocalMaximumPeakDetector.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/common/ZeroSampleFiller.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/FrequencyEstimatorPhysicalModel.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/FrequencyEstimatorSimple.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/MagnitudeLorentzian.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/ParameterEstimator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/PeakDetectorMatchedFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/PeakDetectorNaive.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/TruncatedLorentzian.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/TruncatedLorentzianEstimator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/frequency/TruncatedLorentzianParameters.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/passive/MSDataCache.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/peakdetect/PeakFamilyDetector.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/peakdetect/PeakFamilyDetectorFT.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/MS2Deisotoper.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/MS2NoiseFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/PrecursorMassFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/PrecursorRecalculatorDefault.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_ChargeStateCalculator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumListFactory.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_Filter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_MetadataFixer.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_MZWindow.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_PeakFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_PeakPicker.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_PrecursorRecalculator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_PrecursorRefine.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_Sorter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_TitleMaker.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/SpectrumList_ZeroSamplesFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/spectrum_processing/ThresholdFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/analysis/Version.o \
+            $(PWIZ_OBJ_ARCH)/pwiz_aux/msrc/utility/vendor_api/thermo/ScanFilter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/common/cv.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/common/CVTranslator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/common/diff_std.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/common/obo.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/common/ParamTypes.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/DefaultReaderList.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Diff.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/IO.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Reader.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/References.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Version.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/misc/FrequencyData.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/misc/PeakData.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/BinaryDataEncoder.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/ChromatogramList_mzML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/DefaultReaderList.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Diff.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Index_mzML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/IO.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/LegacyAdapter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/MSData.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/MSDataFile.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/MSDataMerger.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/MSNumpress.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/RAMPAdapter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Reader.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/References.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Serializer_MGF.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Serializer_MSn.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Serializer_mzML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Serializer_mzXML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumInfo.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumList_BTDX.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumListCache.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumList_MGF.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumList_MSn.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumList_mzML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/SpectrumList_mzXML.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/msdata/Version.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/AminoAcid.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/DefaultReaderList.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/Diff.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/Reader.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/tradata/DefaultReaderList.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/tradata/Diff.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/tradata/IO.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/tradata/Reader.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/tradata/References.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ABI/Reader_ABI.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ABI/Reader_ABI_Detail.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ABI/SpectrumList_ABI.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ABI/T2D/Reader_ABI_T2D.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ABI/T2D/SpectrumList_ABI_T2D.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Agilent/Reader_Agilent.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Agilent/SpectrumList_Agilent.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Bruker/Reader_Bruker.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Bruker/Reader_Bruker_Detail.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Bruker/SpectrumList_Bruker.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/ExtendedReaderList.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Shimadzu/Reader_Shimadzu.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Shimadzu/ChromatogramList_Shimadzu.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Thermo/ChromatogramList_Thermo.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Thermo/Reader_Thermo.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Thermo/Reader_Thermo_Detail.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Thermo/SpectrumList_Thermo.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/data/vendor_readers/Waters/Reader_Waters.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/Chemistry.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/ChemistryData.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/IsotopeCalculator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/IsotopeEnvelopeEstimator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/IsotopeTable.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/chemistry/MZTolerance.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/math/Parabola.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/minimxml/SAXParser.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/minimxml/XMLWriter.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/Base64.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/Filesystem.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/IntegerSet.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/IterationListener.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/random_access_compressed_ifstream.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/SHA1Calculator.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/utility/misc/SHA1.o \
+            $(PWIZ_OBJ_ARCH)/pwiz/Version.o 
+
+
+# Add idconvert objects
+OBJS_PWIZ += \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/common/Unimod.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/IdentData.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/IdentDataFile.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/MascotReader_dummy.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Serializer_mzid.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Serializer_pepXML.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/identdata/Serializer_protXML.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/Digestion.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/Modification.o \
+    $(PWIZ_OBJ_ARCH)/pwiz/data/proteome/Peptide.o
+    
+
+# Rules for compiling pwiz source. Uses ignore-warnings rule for use with boost
+
+$(PWIZ_OBJ_ARCH)/%.o: %.c
+	mkdir -v -p $(dir $@)
+	$(NAIVE_COMPILE) -o $@ $<
+
+$(PWIZ_OBJ_ARCH)/%.o: %.cpp
+	@mkdir -v -p $(dir $@)
+	$(NAIVE_COMPILE) -o $@ $<
+
+$(PWIZ_OBJ_ARCH)/%.o: %.cxx
+	@mkdir -v -p $(dir $@)
+	$(NAIVE_COMPILE) -o $@ $< 
+
+
+#
+# Build a single monolithic static library
+#
+$(PWIZ_LIB): $(BOOST_LIBS) $(OBJS_PWIZ) 
+	ar -r $@ $^
+
+
+#
+# Build msconvert (uses secondary expansion to update the prerequistes due to
+# location this file is included in the main makefile
+#
+.PHONY: msconvert _msconvert
+
+msconvert _msconvert : $(OBJ_ARCH)/msconvert
+
+.SECONDEXPANSION:
+$(OBJ_ARCH)/msconvert : $(PWIZ_OBJ_ARCH)/pwiz_tools/commandline/msconvert.o \
+						$(OBJ_ARCH)/TPPVersionInfo.o \
+						$$(TPPLIB) 
+	$(LD) $(DEBUG) $(OPT) -o $@ $^ $(LDFLAGS)
+
+
+#
+# Build idconvert (uses secondary expansion to update the prerequistes due to
+# location this file is included in the main makefile
+#
+.PHONY: idconvert _idconvert
+
+idconvert _idconvert  : $(OBJ_ARCH)/idconvert
+
+.SECONDEXPANSION:
+$(OBJ_ARCH)/idconvert : $(PWIZ_OBJ_ARCH)/pwiz_tools/commandline/idconvert.o \
+						$(OBJ_ARCH)/TPPVersionInfo.o \
+						$$(TPPLIB) 
+	$(LD) $(DEBUG) $(OPT) -o $@ $^ $(LDFLAGS)
+
+.PHONY: qtofpeakpicker _qtofpeakpicker
+
+qtofpeakpicker _qtofpeakpicker  : $(OBJ_ARCH)/qtofpeakpicker
+
+.SECONDEXPANSION:
+$(OBJ_ARCH)/qtofpeakpicker : $(PWIZ_OBJ_ARCH)/pwiz_tools/commandline/qtofpeakpicker.o \
+						$(OBJ_ARCH)/TPPVersionInfo.o \
+						$$(TPPLIB) 
+	$(LD) $(DEBUG) $(OPT) -o $@ $^ $(LDFLAGS)
+
+
+
+
+#
+# Include the Win32 version of Proteowizard's tools.  Used on Windows systems 
+# instead of using our built version as they include the vendor libraries
+#
+.PHONY: pwiz-win32
+
+pwiz-win32: $(OBJ_ARCH)/pwiz-win32
+
+$(OBJ_ARCH)/pwiz-win32 : | $(OBJ_ARCH)/pwiz-bin-windows-x86*.tar.bz2 
+	cd $(OBJ_ARCH); mkdir pwiz-win32 && tar xf pwiz-bin-windows-x86*.tar.bz2 -C pwiz-win32
+
+$(OBJ_ARCH)/pwiz-bin-windows-x86%.tar.bz2 :
+	cd $(OBJ_ARCH); $(PWIZ_DIR)/download-pwiz.pl --win32
+
+
+#
+# Clean targets
+#
+.PHONY: pwiz-clean
+
+pwiz-clean : 
+	rm -rf $(PWIZ_OBJ_ARCH)
+	rm -f $(PWIZ_LIB) 
+	rm -f $(OBJ_ARCH)/msconvert 
+	rm -f $(OBJ_ARCH)/idconvert
+	rm -f $(OBJ_ARCH)/qtofpeakpicker
+	perl $(PWIZ_DIR)/generate-version.pl --clean

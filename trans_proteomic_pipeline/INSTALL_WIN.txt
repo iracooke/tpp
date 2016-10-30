@@ -1,0 +1,80 @@
+Windows Build Instructions
+==========================
+
+IMPORTANT NOTE
+--------------
+
+These instructions are only for developers who wish to build and/or modify TPP
+on the Window's platform.  For users who just wish to use the TPP, you *do not*
+have to build it yourself: you should use the provided Windows native installer
+which will install the TPP and other required software and configure everything
+automatically.
+
+
+Introduction
+------------
+
+The TPP currently supports only one native Windows build platform, MingGW.
+MinGW was chosen because it provides a completely free UNIX-like build 
+environment.  Historically, we used to use the Cygwin system for the same 
+purpose, but its installation process was deemed too complex.  You will also
+find Visual Studio C++ project files within the source.  These are provided with
+out any support and use of Visual Studio for building TPP has been deprecated.
+
+
+Prerequisites
+-------------
+
+  * MingW - The latest version can be downloaded from http://www.mingw.org/.
+    Should be installed with the following additional packages:
+
+       mingw-developer-tool
+       mingw32-base
+       mingw32-gcc-g++
+       msys-base
+       mingw32-libz
+       "wget"
+       "unzip"
+
+    The getting started guide at http://www.mingw.org/wiki/Getting_Started 
+    provides excellent notes on how to properly set it up.  Its also very 
+    important that your installation folder does not have spaces in it.
+
+    When installing MingW its also important to install MSYS.
+
+  * Perl, version 5.8 or newer.  We strongly recommend using ActiveState
+    perl, http://www.activestate.com/activeperl/downloads/.
+
+  * NSIS installer, http://nsis.sourceforge.net/Download.  Follow standard 
+    install options.
+
+  * SVN, TortoiseSVN client found at http://tortoisesvn.net/downloads
+
+
+Launch MSYS
+-----------
+
+
+Checkout Source
+---------------
+
+Choose a local directory to work in and a repository branch (probably
+the current stable release branch, or the unstable trunk) and check
+out the source.  
+
+  svn co https://svn.code.sf.net/p/sashimi/code/trunk/trans_proteomic_pipeline tpp-trunk
+
+
+Building
+--------
+
+Launch a new MSYS window, change to the directory trans_proteomic_pipeline/src
+then type "make".
+
+
+Installer
+---------
+
+To build a Windows installer, from the trans_proteomic_pipeline/src directory
+type "make install". This will run the NSIS installer to build a Windows
+.exe installer file, normally named "TPP_Setup.exe" in the build area.

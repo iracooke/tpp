@@ -1,0 +1,70 @@
+TPP AWS Search tool 
+===================
+
+Program and interface for running MS/MS peptide searches on Amazon 
+Web Services.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+   Net::Amazon::EC2
+   Net::Amazon::S3
+   Amazon::SQS::Simple
+   Class::InsideOut
+   YAML
+   Proc::Fork
+   Module::Load
+   File::Which
+
+WARNING!!
+=========
+
+Use of the TPP Amazon Web Services tools will incur resource charges that the
+user will be responsible for paying.  These charges include S3 storage, SQS
+messaging, and above all EC2 resource usage.  While every effort has been made
+to avoid any unexpected charges (especially with EC2) using automatic shutdown
+scripts your resources and EC2 instances may not be removed. It is YOUR 
+RESPONSIBILITY to confirm that all resources uses by AMZTPP are removed or
+terminated.  If you do not YOU WILL BE CHARGED BY AMAZON FOR ANY RESOURCES UNTIL
+THEY ARE TERMINATED. Learn how to delete any unused resources via the the EC2
+AWS Management Console before using amztpp at: 
+
+   https://console.aws.amazon.com/ec2/home
+
+Neither this program's authors or the Institute for Systems Biology will be
+liable for any charges incurred through the use of this program.
+
+
+COPYRIGHT AND LICENSE
+=====================
+
+Copyright (C) 2009-2012 by Joseph Slagel
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Insitute for Systems Biology
+1441 North 34th St.
+Seattle, WA  98103  USA
+jslagel@systemsbiology.org

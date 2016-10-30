@@ -1,0 +1,603 @@
+# -*- mode: makefile -*-
+#
+# Makefile.incl
+#  version 0.5 finer-grained $ARCH detection for crosscompiling with shared source tree, as in VMWare
+#         also switches MinGW boost version to 1_45_0
+#  version 0.4 switches MinGW boost version to 1_35_0
+#  version 0.3 introduces use of optional Makefile.config.incl for install tweaks
+#  version 0.2 introduces $ARCH usage to help with Cygwin vs MinGW
+#
+
+default: all
+
+#
+# if you want to change installation details, then create Makefile.config.incl containing something like
+#TPP_ROOT=/tools/bin/TPP/tpp/
+#TPP_WEB=/tpp/
+#GNUPLOT_BINARY=/proteomics/sw/gnuplot/bin/gnuplot
+#XSLT_PROC=/usr/bin/xsltproc
+#CGI_USERS_DIR=${TPP_ROOT}cgi-bin/
+
+#
+# must define $(SRC_ROOT) in calling makefile if you're using this from other 
+# than trans_proteomic_pipeline/src
+ifeq ($(strip $(SRC_ROOT)),)
+include Makefile.config.incl   # intentional error here - calling makefile needs to specify SRC_ROOT
+else
+-include $(SRC_ROOT)Makefile.config.incl   # -include means if it doesn't exist, just don't use it
+endif
+
+
+ifeq ($(strip $(TPP_ROOT)),)
+# don't edit here, create Makefile.config.incl instead 
+TPP_ROOT=/usr/local/tpp/
+endif
+ifeq ($(strip $(TPP_WEB)),)
+# don't edit here, create Makefile.config.incl instead  
+TPP_WEB=/tpp/
+endif
+ifeq ($(strip $(XSLT_PROC)),)
+# don't edit here, create Makefile.config.incl instead  
+XSLT_PROC=/usr/bin/xsltproc
+endif
+ifeq ($(strip $(GNUPLOT_BINARY)),)
+# don't edit here, create Makefile.config.incl instead  
+GNUPLOT_BINARY=/usr/bin/gnuplot
+endif
+ESCAPED_TPP_ROOT=$(subst /,\/,$(TPP_ROOT))
+ESCAPED_TPP_WEB=$(subst /,\/,$(TPP_WEB))
+ESCAPED_PERL_BIN=$(subst /,\/,$(PERL_BIN))
+BIN_DIR=${TPP_ROOT}bin/
+CGI_DIR=${TPP_ROOT}cgi-bin/
+CGI_WEB=${TPP_WEB}cgi-bin/
+LIB_DIR=${TPP_ROOT}lib/
+ETC_DIR=${TPP_ROOT}etc/
+HELP_DIR=${TPP_ROOT}html/
+HTML_DIR=${TPP_ROOT}html/
+SCHEMA_DIR=${TPP_ROOT}schema/
+
+ifeq ($(strip $(CGI_USERS_DIR)),)
+# don't edit here, create Makefile.config.incl instead  
+CGI_USERS_DIR=${CGI_DIR}users/
+endif
+
+ESCAPED_CGI_USERS_DIR=$(subst /,\/,$(CGI_USERS_DIR))
+ESCAPED_CGI_WEB=$(subst /,\/,$(CGI_WEB))
+
+ifeq ($(strip $(DEBUG)),) 
+OPT=-g
+endif
+
+
+
+#
+# mingw, darwin or linux?
+#
+ifeq (${OS},)  # Darwin doesn't seem to provide $OS
+OS:= $(shell uname)
+GWT_PLATFORM=mac
+endif
+
+ifeq (${OS},Windows_NT)
+# assuming mingw native windows build with MinGW (${OSTYPE} should be "msys")
+GWT_PLATFORM=windows
+
+$(warn mingw build)
+
+# make sure the win_lib externs are unziped
+WIN_LIB_DIRS = PerlSupport UnxUtils apache-w32-2.2.25 bsdtar-1.2.38-bin gdwin32 gnuplot libw32c setacl-cmdline xsltproc zlib125-dll
+
+# note: $(shell)'s subshell stdout doesn't reach the main stdout
+$(warn uncompressing WIN_LIB...)
+WIN_LIB_UNCOMPRESS := $(shell for wldir in $(WIN_LIB_DIRS); do if [ ! -e $(SRC_ROOT)/../extern/$$wldir ] ; then echo "uncompressing $$wldir..." ; tar -jxf $(SRC_ROOT)/../extern/$$wldir.tar.bz2 -C $(SRC_ROOT)/../extern ; echo "...done uncompressing $$wldir"; echo; fi; done;)
+$(warn ...done uncompressing WIN_LIB)
+
+SWIG_EXE= $(SRC_ROOT)../extern/do_swig.sh $(SRC_ROOT)../extern/
+SWIG_BINDING_LIBEXT= dll
+
+ARCH_FAMILY= mingw
+ARCH= $(ARCH_FAMILY)-$(shell uname -m)
+NATIVE_WINDOWS= 1
+OSFLAGS= -D__MINGW__ -D_USE_32BIT_TIME_T -D_GLIBCXX_USE_WCHAR_T -DBOOST_THREAD_USE_LIB
+GD_LIB= $(SRC_ROOT)../extern/gdwin32/libbgd.a
+GD_INCL= -I $(SRC_ROOT)../extern/gdwin32 
+ZLIB_INCL= -I $(SRC_ROOT)../extern/zlib125-dll/include  -I $(SRC_ROOT)../extern/zlib125-dll
+ZLIB_LIB= $(SRC_ROOT)../extern/zlib125-dll/lib/zdll.lib
+# make sure installed gcc supports -static-libstdc++
+ifeq ("","$(shell g++ -static-libstdc++ 2>&1 | grep unrecognized)")
+STATIC_LIBSTDCPP= -static-libstdc++ 
+endif
+SYSLIBS= -lm -lws2_32 -static $(STATIC_LIBSTDCPP) $(ZLIB_LIB)
+TANDEM_PARAMETERS_INSTALL_DIR=C:\\Inetpub\\wwwroot\\ISB\\data\\parameters\\
+PTHREAD_LIB= -lpthread
+GNUPLOT_BINARY=wgnuplot.exe
+
+ifeq ($(shell perl -MConfig -e 'print $$Config{osname}'),msys)
+    $(error PATH contains mingw32/msys version of perl)
+endif
+
+#
+# (end mingw-specific section) 
+
+
+
+
+else
+#(not windows, so linux or darwin)
+#
+
+#
+# begin linux or darwin
+#
+FPIC= -fPIC
+SWIG_EXE= swig
+GWT_PLATFORM=linux
+OSFLAGS= -DGCC -D__LINUX__ -DDEFAULT_TPP_INSTALL_ROOT=\"$(TPP_ROOT)\" -DTPP_DIR=\"$(TPP_WEB)\"
+
+ifeq (${OS},Darwin)
+# osx build
+#
+ARCH= darwin
+ARCH_FAMILY= $(ARCH)
+OSFLAGS=  -ftemplate-depth=256 -D__LINUX__ -DDEFAULT_TPP_INSTALL_ROOT=\"$(TPP_ROOT)\" -DTPP_DIR=\"$(TPP_WEB)\"
+# use the next two lines if you use fink rather than macports
+#GD_LIB= /sw/lib/libgd.a /sw/lib/libpng.a
+#GD_INCL= -I /sw/include/
+# macports
+#GD_LIB= /opt/local/lib/libgd.a /opt/local/lib/libpng.a
+#GD_INCL= -I /opt/local/include/
+# homebrew 
+GD_LIB= /usr/local/lib/libgd.a /usr/local/lib/libpng.a
+GD_INCL= -I /usr/local/include/
+PTHREAD_LIB= -lpthread
+
+SHARED= -bundle -flat_namespace -undefined suppress
+SWIG_BINDING_LIBEXT= dylib
+
+ZLIB_INCL= 
+ZLIB_LIB= -lz 
+# if you're getting errors about missing libbz2 in relation to
+#  libarchive, just add BZ2_LIB=-g to your Makefile.config.incl file 
+#  (-g is ignored by the linker, it's just a way to put a nonempty value there)
+ifeq ($(strip $(BZ2_LIB)),)
+BZ2_LIB=-lbz2
+endif
+SYSLIBS= -lm $(ZLIB_LIB) $(BZ2_LIB) $(PTHREAD_LIB)
+#
+# (end osx-specific section)
+
+else
+# linux build
+#
+ARCH_FAMILY  := linux
+ARCH_DISTRO  := $(shell (lsb_release -i -s || cut -d ' ' -f1 /etc/*release | head -n1 || echo 'unknown') 2>/dev/null)
+ARCH_MACHINE := $(shell uname -m || echo 'unknown')
+ARCH := $(ARCH_DISTRO)-$(ARCH_MACHINE)
+OSFLAGS=  -D__LINUX__ -DDEFAULT_TPP_INSTALL_ROOT=\"$(TPP_ROOT)\" -DTPP_DIR=\"$(TPP_WEB)\"
+GD_LIB= -lgd -lpng
+GD_INCL=
+PTHREAD_LIB= -lpthread
+SWIG_BINDING_LIBEXT= so
+
+ifeq ($(strip $(LIB64)),)
+# don't edit here, create entry Makefile.config.incl instead, like
+# LIB64= /something_else/lib
+LIB64= /usr/lib64
+endif
+#$(warning using $(LIB64) for lib64)
+
+
+#$(warning using $(LINK) for linking)
+ifeq "$(strip $(LINK))" ""
+#default:
+LIBEXT=a
+#$(warning defaulting to static linking)
+endif
+ifeq "$(strip $(LINK))" "shared"
+LIBEXT=so
+#$(warning shared linking specified)
+endif
+ifeq "$(strip $(LINK))" "static"
+#$(warning static linking specified)
+LIBEXT=a
+endif
+
+ZLIB_INCL= 
+ZLIB_LIB= -lz 
+# if you're getting errors about missing libbz2 in relation to
+#  libarchive, just add BZ2_LIB=-g to your Makefile.config.incl file
+#  (-g is ignored by the linker, it's just a way to put a nonempty value there)
+ifeq ($(strip $(BZ2_LIB)),)
+BZ2_LIB=-lbz2
+endif
+
+# experimental static linking section:
+#
+# ifeq "$(strip $(LINK))" "static"
+# SYSLIBS= #-static
+# else
+SYSLIBS=
+# endif
+SYSLIBS += -lm -lrt $(ZLIB_LIB) $(BZ2_LIB) $(PTHREAD_LIB)
+#$(warning using system libs: $(SYSLIBS))
+
+TANDEM_PARAMETERS_INSTALL_DIR=${BIN_DIR}
+
+endif
+#
+# (end linux-specific section)
+endif
+
+ifeq (${SHARED},)  # Darwin doesn't seem to provide -shared 
+SHARED= -shared 
+endif
+
+# everybody should build for >2GB data files
+OSFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+
+# write objects and binaries to this dir (override in Makefile.config.incl if you want)
+ifeq ($(OBJ_ARCH),)
+ifeq ($(TPP_MSDATA_READER),RAMP)
+OBJ_ARCH= $(SRC_ROOT)../build/$(ARCH)$(DEBUG)-RAMP
+else
+OBJ_ARCH= $(SRC_ROOT)../build/$(ARCH)$(DEBUG)
+endif
+endif
+
+# for writing gzipped files directly from iostream
+GZSTREAMLIB = $(OBJ_ARCH)/libgzstream.a
+$(GZSTREAMLIB) :
+	make -C $(SRC_ROOT)../extern/gzstream ARCH=$(ARCH) BUILD_DIR=$(OBJ_ARCH) ZLIB_INCL="$(ZLIB_INCL)"  ZLIB_LIB=$(ZLIB_LIB) STATIC_LIBSTDCPP=$(STATIC_LIBSTDCPP)
+
+$(OBJ_ARCH):
+	mkdir -p $(OBJ_ARCH)	
+
+# Build expat library
+
+
+EXPAT_VER = 2.0.1
+EXPAT_DIR = $(OBJ_ARCH)/expat-$(EXPAT_VER)
+EXPAT_TGZ = $(SRC_ROOT)../extern/expat-$(EXPAT_VER).tar.gz
+EXPAT_LIB = $(EXPAT_DIR)/.libs/libexpat.a
+# yes, the headers are in the 'lib' directory
+EXPAT_INCL = $(EXPAT_DIR)/lib
+
+.PHONY : expat expat-clean expat-realclean
+
+expat : $(EXPAT_LIB)
+
+$(EXPAT_DIR) :
+	mkdir -p $(EXPAT_DIR)
+	cd $(EXPAT_DIR)/..; tar zxf $(EXPAT_TGZ)
+	cd $(EXPAT_DIR); ./configure;
+
+$(EXPAT_LIB) : | $(EXPAT_DIR)
+	make -C $(EXPAT_DIR)
+ifeq ($(ARCH_FAMILY),mingw)
+	# put it where xtandem build can find it	\
+	if [ ! -e /mingw/lib/libexpat.a ]; then     \
+	   cp $(EXPAT_LIB) /mingw/lib/libexpat.a;   \
+	fi;
+endif
+
+expat-clean :
+	if [ -e "$(EXPAT_DIR)/Makefile" ]; then make -C $(EXPAT_DIR) clean; fi
+	rm -f $(EXPAT_LIB)
+
+expat-realclean :
+	rm -f $(EXPAT_LIB)
+	rm -rf $(EXPAT_DIR)
+
+
+# Build HDF5
+
+HDF5_VER = 1.8.6
+HDF5_TGZ = $(SRC_ROOT)../extern/hdf5-$(HDF5_VER).tar.gz
+HDF5_DIR = $(OBJ_ARCH)/hdf5-$(HDF5_VER)
+HDF5_INCL = $(HDF5_DIR)/hdf5/include
+HDF5_LIB = $(HDF5_DIR)/hdf5/lib/libhdf5_cpp.a $(HDF5_DIR)/hdf5/lib/libhdf5.a
+ifeq ($(ARCH_FAMILY),mingw)
+   HDF5_ENV = PATH=.:/usr/local/bin:/mingw/bin:/bin LIBS=-lws2_32
+endif
+HDF5_PATCHES = $(wildcard $(subst .tar.gz,,$(HDF5_TGZ))*patch)
+
+$(HDF5_DIR) :
+	@echo uncompressing HDF5 library
+	@if [ ! -e $(HDF5_TGZ) ]; then echo Error: HDF5 source TGZ not found!; exit -1; fi;
+	mkdir -p $(HDF5_DIR)
+	cd $(HDF5_DIR); cd ..; tar zxf $(HDF5_TGZ); \
+	for P in $(HDF5_PATCHES); do		\
+	   echo "applying HDF5 patch $$P";	\
+	   patch -s -p0 < $$P;			\
+	done
+
+$(HDF5_LIB): | $(HDF5_DIR)
+	@echo building HDF5 library
+	cd $(HDF5_DIR); ./configure --enable-cxx
+	cd $(HDF5_DIR); make clean; make $(HDF5_ENV); make install
+	@echo; echo "verifying HDF5 library..."
+	@if [ ! -e $(HDF5_LIB) ]; then echo "[ERROR] HDF5 libary build failed"; exit -1; fi;
+	@echo ...HDF5 library verified; echo;
+
+
+
+# boost
+# www.boost.org
+
+# we include boost source to avoid compatibility issues.
+# Note, only the following libraries are required to be compiled--
+# all others are header-only:
+#  date_time
+#  filesystem
+#  iostreams
+#  program_options
+#  regex
+#  serialization
+#  thread
+
+BOOST_DIR = $(SRC_ROOT)../extern/boost_1_54_0
+BOOST_TBZ = $(SRC_ROOT)../extern/boost_1_54_0.tar.bz2
+BOOST_INCLDIR = $(BOOST_DIR)/boost/include
+BOOST_LIBDIR  = $(OBJ_ARCH)/boost/lib/
+BOOST_PATCHES = $(wildcard $(subst .tar.bz2,,$(BOOST_TBZ))*patch)
+
+$(BOOST_DIR): $(BOOST_TBZ)
+	@if [ ! -e $(BOOST_TBZ) ]; then echo Error: Boost source .tar.bz2 not found!; exit -1; fi;
+	@if [ ! -e $(BOOST_DIR) ]; then 		\
+	   echo "unpacking Boost source (this may take a few minutes)...";\
+	   cd $(SRC_ROOT)../extern; 			\
+	   tar jxf $(BOOST_TBZ); 			\
+	   for P in $(BOOST_PATCHES); do		\
+	      echo "...applying Boost patch $$P";	\
+	      cd $(SRC_ROOT)../extern;			\
+	      patch -s -p0 < $$P;			\
+	   done;					\
+	   echo "done unpacking Boost source";		\
+	fi
+	@if [ ! -e $(BOOST_DIR) ]; then echo Error: Boost source not found!  uncompression failed; exit -1; fi;
+	@cd $(BOOST_DIR)/tools
+
+BOOST_BJAM_DIR = $(BOOST_DIR)/tools/build/v2/engine/
+
+#TODO: add 32/64 bit detection per arch
+
+ifeq ($(ARCH_FAMILY),linux)
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+	BOOST_BJAM_EXEC = $(BOOST_BJAM_DIR)bin.linuxx86_64/bjam
+else
+	BOOST_BJAM_EXEC = $(BOOST_BJAM_DIR)bin.linuxx86/bjam
+endif
+endif
+
+ifeq ($(ARCH_FAMILY),darwin)
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+	BOOST_BJAM_EXEC = $(BOOST_BJAM_DIR)bin.macosxx86_64/bjam
+else
+	BOOST_BJAM_EXEC = $(BOOST_BJAM_DIR)bin.macosxx86/bjam
+endif
+endif
+
+ifeq ($(ARCH_FAMILY),mingw)
+BOOST_BJAM_EXEC = $(BOOST_BJAM_DIR)bin.ntx86/bjam
+endif
+
+
+
+ifneq ($(ARCH_FAMILY),mingw)
+$(BOOST_BJAM_EXEC): $(BOOST_DIR)
+	@if [ ! -e $(BOOST_BJAM_DIR) ];  then echo Boost bjam directory not found! exit -1; fi;
+	@if [ ! -e $(BOOST_BJAM_EXEC) ]; then echo "building boost bjam..."; cd $(BOOST_BJAM_DIR); ./build.sh; echo "...done building boost bjam"; fi;
+	@if [ ! -e $(BOOST_BJAM_EXEC) ]; then echo Error: Boost bjam build failed; exit -1; fi;
+else
+#mingw (make sure to build with mingw/msys toolchain, not msvc
+$(BOOST_BJAM_EXEC): $(BOOST_DIR)
+	@if [ ! -e $(BOOST_BJAM_DIR) ];  then echo Boost bjam directory not found! exit -1; fi;
+	@if [ ! -e $(BOOST_BJAM_EXEC) ]; then echo "building boost bjam (mingw)..."; cd $(BOOST_BJAM_DIR); ./build.sh mingw; echo "...done building boost bjam"; fi;
+	@if [ ! -e $(BOOST_BJAM_EXEC) ]; then echo Error: Boost bjam build failed; exit -1; fi;
+endif
+
+# using -isystem instead of -I to suppress boost warnings
+BOOST_INCL = -isystem $(BOOST_DIR)/boost -isystem $(BOOST_DIR) -I$(SRC_ROOT).
+
+BOOST_LIB_EXT=a
+
+BOOST_FILESYSTEM_LIB= $(BOOST_LIBDIR)libboost_filesystem.$(BOOST_LIB_EXT)
+BOOST_IOSTREAMS_LIB= $(BOOST_LIBDIR)libboost_iostreams.$(BOOST_LIB_EXT)
+BOOST_THREAD_LIB= $(BOOST_LIBDIR)libboost_thread.$(BOOST_LIB_EXT)
+BOOST_REGEX_LIB= $(BOOST_LIBDIR)libboost_regex.$(BOOST_LIB_EXT)
+BOOST_SERIALIZATION_LIB= $(BOOST_LIBDIR)libboost_serialization.$(BOOST_LIB_EXT)
+BOOST_SYSTEM_LIB= $(BOOST_LIBDIR)libboost_system.$(BOOST_LIB_EXT)
+BOOST_PROGRAM_OPTIONS_LIB= $(BOOST_LIBDIR)libboost_program_options.$(BOOST_LIB_EXT)
+
+$(BOOST_FILESYSTEM_LIB): boost-build-libs
+
+$(BOOST_IOSTREAMS_LIB): boost-build-libs
+
+$(BOOST_THREAD_LIB): boost-build-libs
+
+$(BOOST_REGEX_LIB): boost-build-libs
+
+$(BOOST_SERIALIZATION_LIB): boost-build-libs
+
+$(BOOST_SYSTEM_LIB): boost-build-libs
+
+$(BOOST_PROGRAM_OPTIONS_LIB): boost-build-libs
+
+BOOST_LIBS= $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_IOSTREAMS_LIB) $(BOOST_THREAD_LIB) $(BOOST_Z_LIB) $(BOOST_REGEX_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SERIALIZATION_LIB)
+
+BOOST_BUILD_ARGS= --stagedir=$(OBJ_ARCH)/boost --build-dir=$(OBJ_ARCH)/boost/obj --layout=system --build-type=minimal -j3 variant=release link=static runtime-link=shared --with-filesystem --with-date_time --with-iostreams --with-program_options --with-regex --with-serialization --with-thread stage
+
+ifneq ($(ARCH_FAMILY),mingw)
+BOOST_BUILD_CMD= cd $(BOOST_DIR); time $(BOOST_BJAM_EXEC) -q -d0 $(BOOST_BUILD_ARGS)
+else
+# mingw (special case)
+BOOST_BUILD_CMD= cd $(BOOST_DIR); $(BOOST_BJAM_EXEC) --toolset=gcc -sTOOLS=mingw -sNO_COMPRESSION=0 -sNO_ZLIB=0 -sZLIB_SOURCE=$(SRC_ROOT)../extern/zlib125-dll -sZLIB_INCLUDE=$(SRC_ROOT)../extern/zlib125-dll/include -sMINGW_ROOT_DIRECTORY=c:/mingw $(BOOST_BUILD_ARGS)
+endif
+
+
+boost-build-libs: $(BOOST_DIR) $(BOOST_BJAM_EXEC)
+	@if [ ! -e $(BOOST_DIR) ];  then echo "[ERROR] Boost library directory not found!"; exit -1; fi;
+	@if [ ! -e $(BOOST_BJAM_EXEC) ]; then echo "[ERROR] Boost bjam not found!"; exit -1; fi;
+	@for blib in $(BOOST_LIBS); do if [ ! -e $$blib ]; then echo "building boost libraries..."; $(BOOST_BUILD_CMD); if [ ! -e $$blib ]; then echo "[ERROR] Boost libary build failed (missing $$blib), please report the results of manually running the following commands:"; echo "$(BOOST_BUILD_CMD)"; exit -1; fi;  echo "...done building boost libraries"; fi; done
+
+$(BOOST_LIBS) :
+	$(BOOST_MAKE)
+
+#
+#
+# Proteowizrd
+##
+PWIZ_DIR = $(SRC_ROOT)../extern/ProteoWizard
+include $(PWIZ_DIR)/Makefile.pwiz.incl
+
+
+#
+#
+# HTMLDOC
+##
+HTMLDOC_BIN=$(SRC_ROOT)../extern/htmldoc/htmldoc/htmldoc
+HTMLDOC_DIR=$(SRC_ROOT)../extern/htmldoc/
+HTMLDOC_TGZ=$(SRC_ROOT)../extern/htmldoc.tgz
+
+$(HTMLDOC_BIN) : $(HTMLDOC_DIR)
+	@cd $(HTMLDOC_DIR) ; ./configure; make ; echo "Done building htmldoc ..."
+
+$(HTMLDOC_DIR) : $(HTMLDOC_TGZ)
+	cd $(SRC_ROOT)../extern ; tar xzf htmldoc.tgz ; cd $(HTMLDOC_DIR)
+
+#
+# put common mz[X]ML parser stuff in an archive for ease of makefile maintenance
+#
+
+# here you can choose between RAMP+pwiz and mzParser (default is mzParser)
+ifeq ($(TPP_MSDATA_READER),)
+TPP_MSDATA_READER = MZPARSER
+#TPP_MSDATA_READER = RAMP
+endif
+
+MZPARSER_BUILD = $(OBJ_ARCH)/libmzparser.a 
+MZPARSER_OBJS= $(OBJ_ARCH)/RAMPface.mzp.o \
+      $(OBJ_ARCH)/PWIZface.mzp.o \
+      $(OBJ_ARCH)/mzp_base64.mzp.o \
+      $(OBJ_ARCH)/BasicChromatogram.o \
+      $(OBJ_ARCH)/BasicSpectrum.mzp.o \
+      $(OBJ_ARCH)/Czran.mzp.o \
+      $(OBJ_ARCH)/mzp_cached_ramp.mzp.o \
+      $(OBJ_ARCH)/mzp_cramp.mzp.o \
+      $(OBJ_ARCH)/mzParser.mzp.o \
+      $(OBJ_ARCH)/saxhandler.mzp.o \
+      $(OBJ_ARCH)/saxmzmlhandler.mzp.o \
+      $(OBJ_ARCH)/saxmzxmlhandler.mzp.o \
+      $(OBJ_ARCH)/mz5handler.mzp.o \
+      $(OBJ_ARCH)/mzpMz5Config.mzp.o \
+      $(OBJ_ARCH)/mzpMz5Structs.mzp.o \
+      $(OBJ_ARCH)/MSNumpress.mzp.o
+
+RAMP_BUILD= $(OBJ_ARCH)/libramp.a 
+RAMP_OBJS= $(OBJ_ARCH)/cramp.o \
+      $(OBJ_ARCH)/wglob.o \
+      $(OBJ_ARCH)/cached_ramp.o \
+      $(OBJ_ARCH)/ramp_base64.o \
+      $(OBJ_ARCH)/random_access_gzFile.o \
+      $(OBJ_ARCH)/ramp.o 
+
+ifeq ($(TPP_MSDATA_READER),MZPARSER)
+TPP_MSDATA_READER_H = mzParser.h
+TPP_MSDATA_READER_INCL = $(SRC_ROOT)Parsers/mzParser
+TPP_MSDATA_READER_OBJS = $(MZPARSER_OBJS)
+TPP_MSDATA_READER_BUILD = $(MZPARSER_BUILD)
+else
+TPP_MSDATA_READER_H = ramp.h
+TPP_MSDATA_READER_INCL = $(SRC_ROOT)Parsers/ramp
+TPP_MSDATA_READER_SUPPORT_INCL = $(PWIZ_INCL)
+TPP_MSDATA_READER_OBJS = $(RAMP_OBJS)
+TPP_MSDATA_READER_BUILD = $(RAMP_BUILD)
+endif
+
+$(RAMP_BUILD): $(RAMP_OBJS) \
+	  $(BOOST_LIBS) $(PWIZ_LIB) \
+      $(OBJ_ARCH)/wglob.o 
+	ar -r $@ $^
+
+$(MZPARSER_BUILD): $(MZPARSER_OBJS) 
+	ar -r $@ $^
+
+# tpplib stuff that we maintain
+TPP_BUILD= $(OBJ_ARCH)/libtpp.a 
+
+SPECTRAST_LIB = $(OBJ_ARCH)/libspectrast.a 
+
+# libs that TPP lib needs (pwiz for mzML drags in a lot of boost stuff)
+TPPLIB = $(TPP_BUILD) $(TPP_MSDATA_READER_LIB) $(PWIZ_LIB) $(GZSTREAMLIB) $(BOOST_LIBS) $(HDF5_LIB) 
+
+
+#
+# Fast Artificial Neural Network
+##
+
+FANN_DIR = $(OBJ_ARCH)/fann-2.0.0
+FANN_TGZ = $(SRC_ROOT)../extern/fann-2.0.0.tar.gz
+FANN_INCLDIR = $(FANN_DIR)/src/include
+FANN_LIBS = $(FANN_DIR)/src/.libs/libfann.a \
+            $(FANN_DIR)/src/.libs/libdoublefann.a \
+            $(FANN_DIR)/src/.libs/libfixedfann.a \
+            $(FANN_DIR)/src/.libs/libfloatfann.a
+
+TPPLIB += $(FANN_LIBS)
+
+.PHONY : fann fann-clean fann-realclean
+
+fann : $(FANN_LIBS)
+
+$(FANN_DIR) : | $(OBJ_ARCH)
+	cd $(dir $(FANN_DIR)); tar xzf $(FANN_TGZ)
+	cd $(FANN_DIR); ./configure --enable-shared=no --enable-static=yes
+
+$(FANN_LIBS) : | $(FANN_DIR)
+	make -C $(FANN_DIR)
+
+fann-clean :
+	if [ -e "$(FANN_DIR)/Makefile" ]; then make -C $(FANN_DIR) clean; fi
+	rm -f $(FANN_LIBS)
+
+fann-realclean :
+	rm -rf $(FANN_DIR)
+
+
+#
+# GNU Scientific Library
+##
+
+GSL_VER  = gsl-1.14
+GSL_DIR  = $(OBJ_ARCH)/$(GSL_VER)
+GSL_TGZ  = $(SRC_ROOT)../extern/$(GSL_VER).tar.gz
+GSL_INCLDIR = $(GSL_DIR)
+GSL_LIBS = $(GSL_DIR)/.libs/libgsl.a $(GSL_DIR)/cblas/.libs/libgslcblas.a
+
+TPPLIB += $(GSL_LIBS)
+
+.PHONY : gsl gsl-clean gsl-realclean
+
+gsl : $(GSL_LIBS)
+
+$(GSL_DIR) :
+	cd $(dir $(GSL_DIR)); tar xzf $(GSL_TGZ)
+	cd $(GSL_DIR); ./configure --enable-shared=no --enable-static=yes
+	if [ ! -e "$(GSL_DIR)/msvc/gsl" ]; then                                 \
+	   mkdir -p $(GSL_DIR)/msvc/gsl;                                        \
+	   sed "s/ inline/ __inline/g" $(GSL_DIR)/gsl/gsl_inline.h > $(GSL_DIR)/msvc/gsl/gsl_inline.h; \
+	   echo "#include <float.h>"   >> $(GSL_DIR)/msvc/gsl/gsl_inline.h;     \
+	   echo "#define isnan _isnan" >> $(GSL_DIR)/msvc/gsl/gsl_inline.h;     \
+	fi
+
+$(GSL_LIBS) : | $(GSL_DIR)
+	make -C $(GSL_DIR) 
+
+gsl-clean :
+	if [ -e "$(GSL_DIR)/Makefile" ]; then make -C $(GSL_DIR) clean; fi
+	rm -f $(GSL_LIBS)
+
+gsl-realclean :
+	rm -rf $(GSL_DIR)

@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+
+
+<!-- Program       : ProteoGrapher                                                        -->
+<!-- Author        : David Shteynberg <dshteynb  AT systemsbiology.org>                                                        -->
+<!-- Date          : June 2014 -->
+
+<!-- Primary data object holding all mixture distributions for each precursor ion charge -->
+
+<!-- Copyright (C) 2014 David Shteynberg -->
+
+<!-- This library is free software; you can redistribute it and/or -->
+<!-- modify it under the terms of the GNU Lesser General Public -->
+<!-- License as published by the Free Software Foundation; either -->
+<!-- version 2.1 of the License, or (at your option) any later version. -->
+
+<!-- This library is distributed in the hope that it will be useful, -->
+<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU -->
+<!-- Lesser General Public License for more details. -->
+
+<!-- You should have received a copy of the GNU Lesser General Public -->
+<!-- License along with this library; if not, write to the Free Software -->
+<!-- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA -->
+
+<!-- David Shteynberg -->
+<!-- Institute for Systems Biology -->
+<!-- 401 Terry AVE N -->
+<!-- Seattle, WA  98109  USA -->
+
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>ProteoGraphic</title>
+    <script type="text/javascript" src="../js/d3.js"></script>
+    <style type="text/css">
+
+
+a:link {text-decoration:none;}    /* unvisited link */
+a:visited {text-decoration:none;} /* visited link */
+a:hover {text-decoration:underline;}   /* mouse over link */
+a:active {text-decoration:underline;}  /* selected link */
+
+svg {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.help {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+  color: #DD0000;
+}
+
+path.dot {
+  fill: white;
+  stroke-width: 1.5px;
+}
+
+td      {
+    font-family: Helvetica, Arial, sans-serif; 
+    font-size: 9pt; 
+    vertical-align: top
+    
+}
+
+
+button {
+  left: 275px;
+  position: absolute;
+  top: 145px;
+  width: 80px;
+}
+
+
+#TableDiv {
+            display: table-cell; 
+            border: 2px solid black;
+            margin: 0;
+            }
+
+.data {
+        /* borders for the whole table */
+        table-layout: auto;
+        /*border: none;*/
+        background: #aaaaaa;
+        border-collapse: collapse;
+        border: 1px solid black;
+	display: table-cell; 
+        margin: 0;
+      }
+td {
+	border-left: 2px solid white;
+	border-right: 2px solid white;
+	width: 33%;
+  }
+
+td.ratio {
+        width: 10%;
+  }
+
+td.link  {
+        width: 20%;
+  }
+
+
+td.desc {
+        width: 70%;
+  
+  }
+
+
+tr.even {
+                background: #DDE0FF;
+		border: 1px solid steelblue;
+        }
+
+
+
+tr.odd {
+               background: #eeeeee;
+	       border: 1px solid cyan;
+	       	      
+       }
+
+
+
+table.top {
+                background: #FFE000;
+		border: 1px solid red;
+		width: 100%;
+		text-align: left;
+        }
+
+table.spacer {
+                background: lightgray;
+		border: 1px solid lightgray;
+		width: 100%;
+		text-align: left;
+        }
+
+
+table.even {
+                background: #DDE0FF;
+		border: 1px solid steelblue;
+		width: 100%;
+	        
+        }
+
+
+
+table.odd {
+               background: #eeeeee;
+	       border: 1px solid cyan;
+	       width: 100%;
+	       text-align: left;
+	   }
+ 
+ body {
+         background-color: #aaaaaa;
+
+	}
+
+
+rect {
+  fill: none;
+  stroke: #fff;
+}
+text {
+  font: 6px sans-serif;
+}
+
+.spacer {
+  height: 30px;
+  width: 10px;
+  fill: none;
+  border: 1px solid;
+  display: inline;
+}
+.q0-9 { fill: rgb(197,27,125);  stroke: #000000;  stroke-width: 1px;}
+.q1-9 { fill: rgb(222,119,174);  stroke: #000000; stroke-width: 1px;}
+.q2-9 { fill: rgb(241,182,218);  stroke: #000000; stroke-width: 1px;}
+.q3-9 { fill: rgb(253,224,239);  stroke: #000000; stroke-width: 1px;}
+.q4-9 { fill: rgb(247,247,247);  stroke: #000000; stroke-width: 1px;}
+.q5-9 { fill: rgb(230,245,208);  stroke: #000000; stroke-width: 1px;}
+.q6-9 { fill: rgb(184,225,134);  stroke: #000000; stroke-width: 1px;}
+.q7-9 { fill: rgb(127,188,65);  stroke: #000000; stroke-width: 1px;}
+.q8-9 { fill: rgb(77,146,33);  stroke: #000000; stroke-width: 1px;}
+
+
+.p0-9 { fill: rgb(90,15,60);  stroke: #000000; stroke-width: 1px;}
+.p1-9 { fill: rgb(111,60,80);  stroke: #000000; stroke-width: 1px;}
+.p2-9 { fill: rgb(120,91,109);  stroke: #000000; stroke-width: 1px;}
+.p3-9 { fill: rgb(125,112,120);  stroke: #000000; stroke-width: 1px;}
+.p4-9 { fill: rgb(125,125,125);  stroke: #000000; stroke-width: 1px;}
+.p5-9 { fill: rgb(115,122,104);  stroke: #000000; stroke-width: 1px;}
+.p6-9 { fill: rgb(92,112,65);  stroke: #000000; stroke-width: 1px;}
+.p7-9 { fill: rgb(65,94,32);  stroke: #000000; stroke-width: 1px;}
+.p8-9 { fill: rgb(33,73,16);  stroke: #000000; stroke-width: 1px;}
+
+
+.select { fill: rgb(256,256,0);  stroke: #FFFF00; stroke-width: 1px;}
+
+
+
+    </style>
+  </head>
+  <body onLoad="var graph = afterLoad()">
+<form>
+ Chart Type:
+ <br/>
+  <label>Adaptive Area Voronoi<input id="Vdisplay" type="radio" name="dispMode" value="voronoi" checked /></label>
+  <label>Proportional Area Treemap<input id="Tdisplay" type="radio" name="dispMode" value="treemap"/> </label>
+   <br/>
+  <label>High Mass Fraction: <input id="Hmode" type="radio" name="mode" value="high" checked /></label>
+  <label>Low Mass Fraction: <input id="Lmode" type="radio" name="mode" value="low"/> </label>
+</form>
+
+  <label>Search Term: <input type="text" size="128" id="filter" name="filter" value="" oninput="recolor();"/></label>
+
+
+<div id="chart"></div>
+
+<aside id="errors"></aside>
+
+<div style="margin: 1em 0; font-style: italic; font-size: small">
+
+  <label for="RUN"><input id="RUN" type="radio" name="treemap-value" checked>RUN!</label> or
+  <label for="STOP"><input id="STOP" type="radio" name="treemap-value"> STOP!</label>
+  
+  <br>
+  Show : 
+  <label for="Show Terms"><input id="TERMS" type="checkbox" name="treemap-value" checked>Terms</label>
+  <label for="Show Proteins"><input id="PROTS" type="checkbox" name="treemap-value" checked>Proteins</label>
+  
+  <br>
+
+  Select polygon type by dragging the slider: 
+  <span id="polygon"></span>
+  <input id="sides" type="range" min="3" max="13" value="3">.
+</div>
+
+<!-- <script language="JavaScript" src="TEST.json"></script>  -->
+<script language="JavaScript" id="file" ></script> 
+ 
+
+ <script type="text/javascript" src="../js/d3.js"></script>
+    <script type="text/javascript" src="../js/d3.geom.nhull.js"></script>
+    <script type="text/javascript" src="../js/power.js"></script>
+  <script type="text/javascript" src="../js/treemap.js"></script>
+<script language="JavaScript" id="terms" src="terms.json"></script> 
+
+    <script type="text/javascript">
+
+
+
+
+d3.select("script#file").attr("src", getParameterByName("file"));
+d3.select("script#terms").attr("src", getParameterByName("terms") ? getParameterByName("terms") : "terms.json");
+
+
+var dispMode = "voronoi";
+var iterCount = 0;
+
+var showTerms = 1;
+
+var showProts = 1;
+
+var filter;
+
+var width = 1024,
+    height = 1024;
+
+var boxIndex = -1;
+
+var boxWidth = 1024;
+var boxHeight = 512;
+
+var boxCount = 0;
+
+var boxDepth = 0;
+
+var origX = 0;
+
+var origY = 0;
+
+var minLen;
+
+var maxLen;
+var sumLen;
+var maxCov;
+var maxShare;
+var sumShare;
+var vertices = []; 
+var xy = [];
+var proteins = [];
+var terms = [];
+
+var selectProts = [];
+var protVerts = [];
+var protXY = [];
+
+
+var usedterms = {};
+var collapseterms = [];
+var termarr = [];
+var sumIds;
+var voronoi; 
+
+
+
+var path;
+var voProt;
+
+
+var color;
+
+
+var selected = "";
+
+var mode = "high";
+
+var zoomCount = 0;
+
+var names = [];
+
+var heirarchy; 
+
+var treemap;
+var vortreemap;
+
+var ratio;
+
+var format;
+ 
+var categoryFill;
+
+var fill;
+
+var margin;
+
+var context;
+
+var svg;
+
+var margin;
+
+var totalArea;
+
+var done;
+
+var xlast;
+
+var InvSizeScale;
+
+var InvLenScale;
+
+var fullArea;
+
+function redraw(json) {
+
+ 
+  var nodes = vtreemap(json).sort(function(a, b) { return a.depth - b.depth; }),
+      root = nodes[0],
+      rootArea = polygonArea(root.polygon),
+      edges = {},
+      ε = 1e-6;
+
+  var errors = [];
+
+
+ context = d3.selectAll("svg").remove();
+
+
+ context = d3.select("#chart").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+
+ svg = d3.select("#errors").append("svg")
+    .attr("width", errorWidth + margin.left + margin.right)
+    .attr("height", errorHeight + margin.top + margin.bottom)
+    .style("margin-left", -margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.append("g")
+    .call(d3.svg.axis().scale(y).ticks(5).orient("left"));
+
+svg.append("g")
+    .attr("transform", "translate(0," + errorHeight + ")")
+    .call(d3.svg.axis().scale(x).ticks(5));
+
+svg.append("text")
+    .attr("dy", "-.2em")
+    .attr("text-anchor", "end")
+    .attr("transform", "translate(" + errorWidth + "," + errorHeight + ")")
+    .text("relative error");
+
+
+  
+
+  //context.clearRect(0, 0, width, height);
+  context.selectAll("path").remove();
+
+  
+
+  var protpath = context.selectAll("path"); 
+  
+  
+  var tnodes = nodes.filter( function (d) { 
+									if (d.parent) {
+										if (d.polygon) {
+											errors.push(Math.abs(d.error = (polygonArea(d.polygon) / rootArea) / (d.value / root.value) - 1));
+										}
+										else if (d.value != 0) {
+											errors.push(Math.abs(d.error = (0 / rootArea) / (d.value / root.value) - 1));
+										
+										}
+									}
+									if (!d.children) return d;  
+							});
+  
+  var polys = tnodes.map( function (d) {
+    if (!d.polygon || !showProts) return;
+
+
+//    var centerMass = d3.geom.polygon(d.polygon).centroid();
+//    var cx = centerMass[0];
+//    var cy = centerMass[1];
+//    var s=0.9, t=0.9;
+//    var i;
+     var polyout = d.polygon;
+
+//    for (i = 0 ; i < d.polygon.length; i++) {
+//         polyout[i][0] = s*(d.polygon[i][0]-cx)+cx;
+//         polyout[i][1] = t*(d.polygon[i][1]-cy)+cy;
+
+//    }
+
+
+    return polyout; 
+
+
+   });
+   
+   
+  protpath = protpath
+		.data(polys, polygon);
+  
+ 
+  
+  protpath.enter().append("path")
+       .style("fill", function(d,i) { 
+								
+							
+                                 if (filter != "" && tnodes[i].name.indexOf(filter) > -1) {
+										return d3.rgb(256,256,0);
+									}				 
+
+                                 return color(tnodes[i].name);
+							
+            })
+
+      .attr("stroke-width", "1px")
+      .attr("stroke", "#FFFFFF")
+      .attr("d", polygon)
+ 
+
+      .append("title").text(function(d,i){ return tnodes[i].name+ ", %ids="+ tnodes[i].ids + ", len="+tnodes[i].len ; });
+  
+  
+  
+    
+  var termpath = context.selectAll("path"); 
+  
+  
+  tnodes = nodes.filter( function (d) { if (d.children) return d; });
+  
+  polys = tnodes.map( function (d) { if (showTerms && d) return d.polygon; });
+  
+   
+  termpath = termpath
+		.data(polys, polygon);
+
+		
+ termpath.enter().append("path")
+      .style("fill",  function(d,i) { 
+								
+							
+                                 if (filter != "" && tnodes[i].name.indexOf(filter) > -1) {
+										return "#FFFF00";
+									}				 
+
+                                 return "#AAAAAA";
+							
+            })
+      .style("fill-opacity",    function(d,i) { 
+								
+							
+                                 if (filter != "" && tnodes[i].name.indexOf(filter) > -1) {
+										return "0.5";
+									}				 
+
+                                 return "0";
+							
+            })
+				      
+      .attr("stroke-width", "3px")
+      .attr("stroke", function(d,i) { 
+								
+							
+                                 if (filter != "" && tnodes[i].name.indexOf(filter) > -1) {
+										return "#FFFF00";
+									}				 
+								return "#000000";
+                                 //return color(tnodes[i].name);
+							
+            })
+
+      .attr("d", polygon)
+      .append("title").text(function(d,i){ return tnodes[i].name+ ", %ids="+ tnodes[i].ids + ", len="+tnodes[i].len ; });
+  
+
+  var rect = svg.selectAll("rect")
+      .data(histogram(errors));
+  rect.enter().append("rect");
+  rect.attr("x", function(d) { return x(d.x) + .5; })
+      .attr("y", function(d) { return y(d.y); })
+      .attr("width", function(d) { return x(d.dx) - 1; })
+      .attr("height", function(d) { return errorHeight - y(d.y); });
+  rect.exit().remove();
+
+  return d3.max(errors) < .01;
+  
+  
+}
+
+
+
+
+function polygon(d) {
+	if (!d) return d;
+  return "M" + d.join("L") + "Z";
+}
+
+function regularPolygon(n, w, h, p) {
+
+  if (n == 3) {
+     return [[2,2], [w-2,2], [w-2,h-2], [2,h-2], [2,2]];
+
+  }
+  w *= .5, h *= .5;
+  var θ = 2 * Math.PI / n,
+      polygon = d3.range(n).map(function(i) {
+        return [w + (w - p) * Math.sin(i * θ), h + (h - p) * -Math.cos(i * θ)];
+      });
+  polygon.push(polygon[0].slice());
+  return polygon;
+}
+
+function smallPolygon(g, n) {
+  var r = 10,
+      p = 1,
+      polygon = regularPolygon(n, 2 * r, 2 * r, p);
+
+  var svg = g.selectAll("svg").data([polygon]);
+  svg.enter().append("svg")
+      .attr("width", 2 * (r + p))
+      .attr("height", 2 * (r + p))
+    .append("path");
+  svg.select("path")
+      .attr("d", "M" + polygon.join("L") + "Z");
+}
+
+function powerLaw(x0, x1, n) {
+  ++n;
+  var x0_n = Math.pow(x0, n),
+      x1_n = Math.pow(x1, n);
+  return function() {
+    return Math.pow((x1_n - x0_n) * Math.random() + x0_n, 1 / n);
+  };
+}
+
+function polygonArea(polygon) {
+  var a = polygon[0],
+      area = 0;
+  for (var i = 1, n = polygon.length; i < n; ++i, a = b) {
+    var b = polygon[i];
+    area += a[0] * b[1] - a[1] * b[0];
+  }
+  return .5 * area;
+}
+
+
+
+<!-- var treemap = d3.layout.voronoiTreemap() -->
+<!--     .padding(4) -->
+<!--     .size([width, height]) -->
+<!--     .value(function(d) { return d.size; }); -->
+
+<!-- var svg = d3.select("body").append("svg") -->
+<!--     .attr("width", width) -->
+<!--     .attr("height", height) -->
+<!--   .append("g") -->
+<!--     .attr("transform", "translate(-.5,-.5)"); -->
+
+<!-- var div = d3.select("body").append("div") -->
+<!--     .style("position", "relative") -->
+<!--     .style("width", (width + margin.left + margin.right) + "px") -->
+<!--     .style("height", (height + margin.top + margin.bottom) + "px") -->
+<!--     .style("left", margin.left + "px") -->
+<!--     .style("top", margin.top + "px"); -->
+
+
+//display();
+
+ var cell;
+
+function insertProts(dd, pol) {
+        selectProts = [];
+	
+	protVerts = [];
+	protXY = [];
+
+       
+}
+
+function display(mode) {
+ d3.selectAll("#RUN, #STOP, #TERMS, #PROTS, #sides").attr("disabled", true); 
+
+if (mode == "high") {
+treemap = d3.layout.treemap()
+    .padding(4)
+    .size([width, height])
+    .value(function(d) { return d.size; });
+}
+else {
+treemap = d3.layout.treemap()
+    .padding(4)
+    .size([width, height])
+    .value(function(d) { return d.invsize; });
+}
+
+d3.select("#errors").selectAll("svg").remove().append("svg")
+
+
+var svg = d3.select("#chart").selectAll("svg").remove();
+
+svg = d3.select("#chart").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(-.5,-.5)");
+
+var div = d3.select("body").append("div")
+    .style("position", "relative")
+    .style("width", (width + margin.left + margin.right) + "px")
+    .style("height", (height + margin.top + margin.bottom) + "px")
+    .style("left", margin.left + "px")
+    .style("top", margin.top + "px");
+
+
+    svg.selectAll("g").remove();
+
+  cell = svg.data([heirarchy]).selectAll("g")
+      .data(treemap.nodes)
+    .enter().append("g").attr("id",function(d) { return d.name; }) 
+     .attr("class",function(d) { // "cell")
+                          if (filter != "" && d.name.indexOf(filter) > -1) {
+                           return "select";
+                         }
+                         else {
+                           return "q" + (d.len % 9) + "-9";
+                         }   } )
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+  cell.append("rect")
+      .attr("width", function(d) { return d.dx; })
+      .attr("height", function(d) { return d.dy; })
+      .style("fill", function(d) { 
+                                 if (filter != "" && d.name.indexOf(filter) > -1) {
+				      return d3.rgb(256,256,0);
+				 }				 
+
+                                 return color(d.name);
+            })
+      .style("opacity", function(d) { 
+                                 if (typeof d.parent != 'undefined' && filter != "" && d.parent.name.indexOf(filter) > -1) {
+				      return 0.5;
+				 }				 
+
+                                 return 1 ;
+	     })
+      .on("click", function(d) { 
+                                var prots = [];
+	                 	var prot = d.fullname;
+				if (prot.indexOf("|") != -1) { 
+					prot = d.fullname.substr(prot.indexOf("|")+1);
+				}
+				if (prot.indexOf("|") != -1) { 
+					prots.push(prot.substr(0, prot.indexOf("|")));
+				
+				}
+
+
+				while (prot.indexOf(",") != -1) { 
+
+					 prot = prot.substr(prot.indexOf(",")+1);
+					 if (prot.indexOf("|") != -1) { 
+					 	prot = prot.substr(prot.indexOf("|")+1);
+					 }
+					 if (prot.indexOf("|") != -1) { 
+					 	prots.push(prot.substr(0, prot.indexOf("|")));
+
+					 }
+
+				}
+				var link = "http://www.uniprot.org/uniprot/?sort=score&query=";
+				prots.forEach
+					(function(d,i,a) { 
+					          link += d;
+						  if (i < prots.length-1) 
+						  		link += "+OR+";
+			
+					});
+				return window.open(link);
+
+
+		}
+
+       )
+
+
+      .append("title")
+      .text( function(d) { 
+			     if (typeof d.ids != 'undefined') {
+			            return "%Ids="+d.ids+", len="+d.len+"\n"+d.term ; 
+			     }
+			     else {
+			            return null; //"%Ids="+d.ids+", len="+d.len+"\n"+d.term ; 
+			     }
+	   } );
+       
+}
+
+function position() {
+  this.style("left", function(d) { return d.x + "px"; })
+      .style("top", function(d) { return d.y + "px"; })
+      .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+      .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+}
+
+function zoom() {
+
+ svg.selectAll("rect")
+.attr("width", function(d) { 
+           if (selected == d.name) {
+	      return 2*this.attributes.width.value;
+	   
+	   }
+ })
+.attr("height", function(d) { 
+            if (selected == d.name) {
+	      return 2*this.attributes.height.value;
+
+	    }
+ });
+ zoomCount ++;
+
+}
+
+
+//change();
+
+
+
+  function recolor() {
+      filter = document.getElementById('filter').value;
+    
+      var sel = dispMode == "voronoi" ? "path" : "rect";
+      var func = new afterLoad();							  
+							
+      if (dispMode == "voronoi") {
+            redraw(heirarchy);
+            return;
+      }
+      else {
+           svg.selectAll("rect").style("fill", function(d) { 
+           if (filter != "" && d.name.indexOf(filter) > -1) {
+	      return d3.rgb(256,256,0);
+	   }				 
+              return color(d.name);
+           })
+
+	    .style("opacity", function(d) { 
+                                 if (typeof d.parent != 'undefined' && filter != "" && d.parent.name.indexOf(filter) > -1) {
+				      return 0.5;
+				 }				 
+
+                                 return 1 ;
+            })
+        }
+
+
+  }
+
+
+
+function change() {
+  dispMode =  d3.select("input#Vdisplay").property("checked") ? "voronoi" : "treemap" ;
+  mode = d3.select("input#Hmode").property("checked") ? "high" : "low";
+  sides = +d3.select("#sides").property("value");
+  if (sides > 12) sides = 120;
+  d3.select("#polygon").call(smallPolygon, sides);
+  vtreemap
+      .polygon(regularPolygon(sides, width, height, 2 * ratio))
+      .value(function(d) { 
+                      if (mode == "low") 
+		          return d.invsize;
+		      return d.size; 
+		      });
+
+
+if (d3.select("#TERMS").property("checked")) {
+  showTerms = true;
+ }
+ else {
+  showTerms = false;
+ }
+
+if (d3.select("#PROTS").property("checked")) {
+  showProts = true;
+ }
+ else {
+  showProts = false;
+ }
+
+dispMode =  d3.select("input#Vdisplay").property("checked") ? "voronoi" : "treemap" ;
+
+
+
+if (dispMode == "treemap") {
+   done = true;
+
+   display(mode);
+}
+else {
+ done = false;
+
+  ["RUN", "STOP", "TERMS", "PROTS", "sides"].map (
+         function(d) {
+	      document.getElementById(d).disabled = false;
+
+	 }
+
+ );
+
+
+ if (d3.select("#STOP").property("checked")) {
+  done = true;
+  redraw(heirarchy);
+ }
+ else {
+  done = false;
+ }
+
+ d3.timer(function() {
+
+   if (done) return true;   
+   
+
+   if (dispMode == "voronoi") {
+      done = redraw(heirarchy);
+   }
+   else {
+   
+      return true;
+      
+     }
+
+   });
+
+ }
+
+}
+
+
+
+function afterLoad() {
+
+iterCount = 0;
+
+showTerms = 1;
+
+showProts = 1;
+
+filter = document.getElementById('filter').value;
+
+width = 1024,
+    height = 1024;
+
+boxIndex = -1;
+
+boxWidth = 1024;
+boxHeight = 512;
+
+boxCount = 0;
+
+boxDepth = 0;
+
+origX = 0;
+
+origY = 0;
+
+minLen = d3.min(data.map(
+                              function(d){ 
+			                   if (d.length < 1) { 
+                                                d.length = 1; 
+                                           }
+					   return d.length;
+		 } ));
+
+maxLen = d3.max(data.map(function(d){ return d.length; } )); 
+sumLen = d3.sum(data.map(function(d){ return d.length; } ));//Math.log(d3.max(data.map(function(d){ return d.length; } )));
+maxCov = d3.max(data.map(function(d){ return d.coverage; } ) );
+maxShare = d3.max(data.map(function(d){ return d.psm_id_share; } ) );
+sumShare = d3.sum(data.map(function(d){ return d.psm_id_share; } ) );
+vertices = []; 
+xy = [];
+proteins = [];
+terms = [];
+
+selectProts = [];
+protVerts = [];
+protXY = [];
+
+
+usedterms = {};
+collapseterms = [];
+termarr = [];
+sumIds;
+voronoi; 
+
+
+dispMode = "voronoi";
+
+path;
+voProt;
+
+
+color = d3.scale.category20c();
+
+
+selected = "";
+
+mode = "high";
+
+zoomCount = 0;
+
+names = [];
+
+heirarchy = {"name": "GO", "children":[]}; 
+
+color("GO");
+
+data.sort(function(a, b) { 			
+
+			return  a.psm_id_share > b.psm_id_share ? 1  : a.psm_id_share < b.psm_id_share ? -1 : 0  ;
+ 	} 
+	)
+	.forEach
+	(function(d,i,a) { 
+	  
+	  var x=0;
+	  var y;
+	  if (d.psm_id_share > 0) {
+
+
+	  
+	  x = origX + (d.psm_id_share)*width/sumShare;
+	   origX = x; 
+
+	     y = origY + height * (d.length)/sumLen;
+	     origY = y; 
+	     //y = height * Math.log(d.length-minLen+1)/maxLen;
+          }	  
+
+	  var protarr = d.proteins.split('|');
+	  var protarr2 = protarr ; 
+	  if (protarr.length > 1) {
+	     protarr2 = protarr[1].split('-');
+	  }
+
+	  proteins.push({"prot":protarr2[0], "len":d.length, "ids":d.psm_id_share, "fullprot": d.proteins}); 
+
+
+	  //vertices.push({"x":x, "y":y,"proteins":protarr[1],"ids":d.psm_id_share,"loglen":Math.log(d.length), "len":d.length,"cov":d.coverage});
+	  //xy.push([x,y]);	  
+
+
+	  
+	
+	}
+
+  	);
+
+proteins.forEach
+        (function(d,i,a) {
+	
+	     var thisterms = goterms[d.prot];
+
+	     if (typeof thisterms !=  'undefined') {
+	     	     for (var x = 0; x< thisterms.length; x++) {
+
+		     if (d.ids > 0.01) {
+		        if (typeof usedterms[thisterms[x]] != 'undefined') {
+			       usedterms[thisterms[x]].count	 += 1;
+			       usedterms[thisterms[x]].totlen	 += d.len;
+	   		       usedterms[thisterms[x]].totids     += d.ids;
+			       usedterms[thisterms[x]].prot+= "\n"+d.prot;
+			       if (d.len > usedterms[thisterms[x]].maxlen) {
+			       	 usedterms[thisterms[x]].maxlen = d.len ;
+			       }
+			} 
+		        else {
+		
+		            usedterms[thisterms[x]] = ({"term": thisterms[x], "count": 1, "totlen": d.len, "totids": d.ids, "maxlen": d.len, "prot": d.prot, "fullprot": d.fullprot});
+		        
+			    termarr.push({"term": thisterms[x]}); // "count": 1, "totlen": d.len, "totids": d.ids, "maxlen": d.maxlen});
+		        }
+
+                     }
+                   }
+             }
+		     
+
+
+        }); 
+
+
+
+
+ minLen = d3.min(termarr.map(function(d){  usedterms[d.term].totlen = Math.round(usedterms[d.term].totlen/usedterms[d.term].count); return  usedterms[d.term].totlen; } ));
+ maxLen = d3.max(termarr.map(function(d){  if (usedterms[d.term].totids > 0.01) { return usedterms[d.term].totlen; }} )); //Math.log(d3.max(termarr.map(function(d){ return usedterms[d.term].length; } )));
+ maxCov = d3.max(termarr.map(function(d){ return usedterms[d.term].coverage; } ) );
+ maxShare = d3.max(termarr.map(function(d){ return usedterms[d.term].totids; } ) );
+ var minShare = d3.min(termarr.map(function(d){ return usedterms[d.term].totids; } ) );
+ sumShare = d3.sum(termarr.map(function(d){ return usedterms[d.term].totids; } ) );
+ sumLen = d3.sum(termarr.map(function(d){  if (usedterms[d.term].totids > 0.01) { return usedterms[d.term].totlen; }} ));
+
+ sumIds = d3.sum(termarr.map(function(d){ return usedterms[d.term].totids; } ) );
+ origX = 0;
+origY = 0;
+	  var lastids = -1;
+	  var lastlen = -1;
+	  var lastprot = "undef";
+//var LenScale = d3.scale.pow().exponent(2).domain([minLen-(maxLen-minLen)/2, maxLen+(maxLen-minLen)/2]).range([0, height]);
+var LenScale = d3.scale.pow().exponent(2).domain([minLen, maxLen]).range([0, height]);
+
+
+
+
+termarr.sort(function(a, b) {
+
+               		if ( usedterms[a.term].prot > usedterms[b.term].prot ) {
+			 return 1;		
+			
+			}
+			else if ( usedterms[a.term].prot < usedterms[b.term].prot ) {
+			 return -1;		
+			
+			}
+			else if ( usedterms[a.term].totids > usedterms[b.term].totids ) {
+			 return 1;		
+			
+			}
+			else if ( usedterms[a.term].totids < usedterms[b.term].totids ) {
+			 return -1;		
+			
+			}
+			else if ( usedterms[a.term].totlen > usedterms[b.term].totlen ) {
+			 return 1;
+			}
+			else if ( usedterms[a.term].totlen < usedterms[b.term].totlen){
+			  return -1;
+			} 
+			
+			else {
+			 return 0;
+			}
+ 	}
+	)
+	.forEach
+	(function(d,i,a) {
+	  
+
+
+	  var x=0;
+	  var y;
+	  if (usedterms[d.term].totids > 0) {
+
+
+	  
+	 // x = origX + (usedterms[d.term].totids/2)*width/sumIds;//100;
+	  //origX = x + (usedterms[d.term].totids/2)*width/sumIds;
+
+	  //y = origY + height * (usedterms[d.term].totlen)/maxLen;
+	  //y = LenScale(usedterms[d.term].totlen);
+          }
+
+
+          if (usedterms[d.term].totids > 0.01) {
+	  if (usedterms[d.term].prot == lastprot) {
+	     //vertices[vertices.length-1] = {"x":x, "y":y,"term": vertices[vertices.length-1].term+"\n"+usedterms[d.term].term,"ids":usedterms[d.term].totids,"loglen":Math.log(usedterms[d.term].totlen), "len":usedterms[d.term].totlen, "maxlen":usedterms[d.term].maxlen};
+	     //collapseterms[collapseterms.length-1].len += usedterms[d.term].totlen;
+	     if (collapseterms[collapseterms.length-1].maxlen < usedterms[d.term].maxlen) {
+	        collapseterms[collapseterms.length-1].maxlen = usedterms[d.term].maxlen;
+             }
+	     //	     collapseterms[collapseterms.length-1].ids += usedterms[d.term].totids;
+  	     collapseterms[collapseterms.length-1].termcount++;
+	     collapseterms[collapseterms.length-1].term += "\n" + usedterms[d.term].term;
+
+	  }
+	  else {
+		 //  xy.push([x,y]);
+	  	//  vertices.push({"x":x, "y":y,"term":usedterms[d.term].term,"ids":usedterms[d.term].totids,"loglen":Math.log(usedterms[d.term].totlen), "len":usedterms[d.term].totlen, "maxlen":usedterms[d.term].maxlen});
+		  collapseterms.push({"len":usedterms[d.term].totlen, "maxlen":usedterms[d.term].maxlen, "protcount":usedterms[d.term].count,"termcount": 1, "ids":usedterms[d.term].totids, "term": usedterms[d.term].term});
+	
+          }	   
+
+	  lastprot = usedterms[d.term].prot;
+	  }
+	
+	}
+
+  	);
+
+ maxShare = d3.max(collapseterms.map(function(d){ d.ids = 100*d.ids / sumIds; return d.ids; } ) );
+ minShare = d3.min(collapseterms.map(function(d){ return d.ids; } ) );
+// sumIds = d3.sum(collapseterms.map(function(d){ return d.ids; } ) );
+
+xlast = 0;
+
+InvSizeScale = d3.scale.linear().domain([minShare, maxShare]).range([maxShare, minShare]);
+InvLenScale = d3.scale.linear().domain([minLen, maxLen]).range([maxLen, minLen]);
+
+done = false;
+
+
+margin = {top: 40, right: 10, bottom: 10, left: 10},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+totalArea = 0;//height*width;
+fullArea = height*width;
+
+
+collapseterms.forEach
+	(function(d,i,a) {
+	     totalArea += (d.maxlen*d.ids)
+
+	       });
+collapseterms.sort(function(a, b) {
+
+	        if ( a.ids*a.maxlen > b.ids*b.maxlen  ) {
+			 return 1;		
+			
+		}
+		else if ( a.ids*a.maxlen < b.ids*b.maxlen  ) {
+			 return -1;		
+		}
+			 
+			
+		else if ( a.maxlen > b.maxlen ) {
+		 	 return 1;
+		}
+		else if ( a.maxlen < b.maxlen){
+		  return -1;
+		}
+		
+	
+			
+		else {
+		 return 0;
+		}
+ 	}
+	)
+	.forEach
+	(function(d,i,a) {
+
+
+	      heirarchy.children.push({"name": d.term, "children": [], "ids": d.ids, "invids": InvSizeScale(d.ids), "len": d.maxlen, "invlen": InvLenScale(d.maxlen), "term": d.term}); //, "size": (d.maxlen*d.ids)
+	      color(d.term);
+	      var termSum = 0;
+	      var InvTermSum = 0;
+	      proteins.forEach
+	              (function(dd,ii,aa) {
+		         var thisterms = goterms[dd.prot];
+			 var termarr = d.term.split('\n');
+			 var done = false;
+			 if (typeof thisterms !=  'undefined') {
+			   done = false;
+			   for ( var y = 0; y < termarr.length && !done; y++) {
+			    for ( var x = 0; x < thisterms.length && !done; x++) {
+			     if (thisterms[x] == termarr[y]) {
+			        termSum +=  dd.ids;
+				InvTermSum += sumIds - dd.ids;
+				done = true;
+			  
+			     }
+                            }
+			   }
+			 }
+		      });
+
+	      proteins.forEach
+	              (function(dd,ii,aa) {
+		         var thisterms = goterms[dd.prot];
+			 var termarr = d.term.split('\n');
+			 var done = false;
+			 if (typeof thisterms !=  'undefined') {
+			   done = false;
+			   for ( var y = 0; y < termarr.length && !done; y++) {
+			    for ( var x = 0; x < thisterms.length && !done; x++) {
+			     if (thisterms[x] == termarr[y]) {
+			        heirarchy.children[heirarchy.children.length-1].children.push(
+				{"name": dd.fullprot, "fullname": dd.fullprot,
+				 "size": (d.ids*dd.len*dd.ids/(termSum)), 
+				 "ids":d.ids*dd.ids/termSum , "len":dd.len, 
+				 "invlen":InvLenScale(dd.len),"term": dd.fullprot, 
+				 "invsize":InvSizeScale(d.ids)*InvLenScale(dd.len)*dd.ids/termSum, 
+				 "invids":InvSizeScale(d.ids)*dd.ids});
+				done = true;
+				color(dd.fullprot);
+			     }
+                            }
+			   }
+			 }
+
+
+	        });
+
+	     
+	  });
+
+
+
+
+var format;
+
+
+ratio = window.devicePixelRatio || 1,
+    width = 960 * ratio,
+    height = 600 * ratio,
+    done = false,
+    sides;
+
+vtreemap = d3.layout.voronoiTreemap().iterations(1),
+    commaFormat = d3.format(",f");
+
+categoryFill = d3.scale.category20c(),
+    errorFill = d3.scale.linear().domain([-1, 0, 1]).range(["#00f", "#fff", "#f00"]);
+
+fill = function(d) { return errorFill(d.error); };
+
+margin = {top: 5, right: 8, bottom: 25, left: 25},
+    errorWidth = 180 - margin.right,
+    errorHeight = 100 - margin.top - margin.bottom,
+    x = d3.scale.linear().range([0, errorWidth]),
+    y = d3.scale.linear().range([errorHeight, 0]),
+    histogram = d3.layout.histogram().bins(x.ticks(50)).frequency(false);
+
+d3.selectAll("#RUN, #STOP, #TERMS, #PROTS, #Vdisplay, #Tdisplay, #Hmode, #Lmode").on("change", change);
+d3.select("#sides").on("input", change);
+
+context;
+svg;
+
+change();
+
+
+
+
+ 
+}
+
+
+ function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+       var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+           results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}   
+
+
+
+  </script>
+  </body>
+</html>
+
+

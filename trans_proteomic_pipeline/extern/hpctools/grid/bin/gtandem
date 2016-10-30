@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# Program: TPP HPC Tools
+# Author:  Joe Slagel
+#
+# Copyright (C) 2009-2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: $
+#
+
+set -e          # Tell bash to exit if any statement fails
+
+# -- Local settings -----------------------------------------------------------
+
+   GOLEM_SERVER=${GOLEM_SERVER-http://glados.systemsbiology.net:8083}
+
+   # Programs
+   GOLEM=${GOLEM-`which golem.py || true`}
+   TANDEM=${TANDEM-`which tandem || true`}
+   TANDEM2XML=${TANDEM2XML-`which Tandem2XML || true`}
+   
+# -----------------------------------------------------------------------------
+   
+source qgrid_functions                          # Load "q" grid functions
+
+#
+# Copy tandem.params file 
+#
+function copy_params () {
+   input=$1
+   src=$2
+   dst=$3
+   
+   # Before copying, check threads parameter
+   DEFS_REGEX='<note type="input"\s+label="list path,\s*default parameters">(.*?)</note>'
+   THDS_REGEX='<note type="input"\s+label="spectrum,\s*threads">(.*?)</note>'
+   DEFS=`perl -n -e "print \\$1 if m~${DEFS_REGEX}~im" $src`
+   THDS=`perl -n -e "next unless m~${THDS_REGEX}~im; print \\$1; exit" $src $DEFS`
+   if [ "${THDS}" != "1" ]; then
+      die "error the 'spectrum, threads' parameter is not set to 1 for this job"
+      exit 1
+   fi
+
+   # Use brute force to copy the parameter file and replace tags
+   SPT_REGEX='(<note type="input"\s+label="spectrum,\s*path">).*?(</note>)'
+   OUT_REGEX='(<note type="input"\s+label="output,\s*path">).*?(</note>)'
+   SEQ_REGEX='(<note type="input"\s+label="output,\s*sequence path">).*?(</note>)'
+   
+   cp -f $src $dst
+   perl -pi -e "s~${SPT_REGEX}~\${1}$input\${2}~im" $dst
+   perl -pi -e "s~${OUT_REGEX}~\${1}$root.tandem\${2}~im" $dst
+   perl -pi -e "s~${OUT_REGEX}~\${1}$root.tandem\${2}~im" $dst
+   perl -pi -e "s~${SEQ_REGEX}~\${1}$root.output_sequences\${2}~im" $dst
+}
+
+#
+# List of commands to run in the qsub script.  Commands are echo'ed out and
+# are intended to be read in by the qsubmit() function.
+#
+function setcmds() {
+
+   prog=tandem
+   
+   # Remove previous results
+   rm -f $odir$root.pep.xml
+   rm -f $odir$root.output_sequences
+   rm -f $odir$root.tandem
+   copy_params $file $P_OPT $odir$root.tandem.params
+   
+   cmds=$(cat <<EOF
+$TANDEM $odir$root.tandem.params 
+$TANDEM2XML $odir$root.tandem $odir$root.pep.xml 
+EOF
+)
+
+}
+
+#
+# Writes a "gsub" file and submits it to the cluster.  Expects a number of
+# global variables to have been set.
+#
+function submit()
+{
+   local SFILE="${odir:-$PWD/}$root.$prog.gsub"
+   local JFILE="${odir:-$PWD/}$root.$prog.gjob"
+   local LFILE="${odir:-$PWD/}$root.$prog.glog"
+   
+#   local JOBID=$(cat "$JFILE" 2>/dev/null) || true
+#   if [ "$JOBID" -a "$(qstat -j $JOBID 2>/dev/null)" ]; then
+   if [ -f "$JFILE" ]; then
+      warn "can't submit job $JFILE already exists"
+      return 
+   fi
+      
+   rm -f "$JFILE" "$SFILE" "$LFILE"
+   
+   # Write out gsub script, BE VERY WARY of escaping environment variables
+   cat <<QSUB_SCRIPT > "$SFILE"
+#!/bin/bash
+
+set -e          # Tell bash to exit if any statement fails
+
+cd '${odir:-$PWD}'
+
+exec 1> '$LFILE'
+exec 2>&1
+
+echo -n "== Job starting "; date '+%m/%d/%Y %H:%M:%S'
+
+# Echo some useful debugging information
+echo "== "
+echo "== Hostname = "\`hostname\`
+echo "== Username = "\`whoami\`
+echo "== PID      = \$\$"
+echo "== PWD      = \$PWD"
+echo "== PATH     = \$PATH"
+echo "=="
+
+# Function to cleanup on error or signal and report them
+function on_exit() {
+   local err=\$?                # can't put anything before here
+   local sig=\$((err - 128))
+   set +x
+   trap - HUP INT QUIT TERM ERR EXIT
+   
+   # Remove job file (if it exists)
+   [ -f "$JFILE" ] && rm -f "$JFILE"
+   
+   # What did we trap?
+   echo
+   if [ \$sig -gt 0 -a \$sig -lt 64 ]; then             # trapped signal
+      echo "== Job received SIG \$sig "; date '+%m/%d/%Y %H:%M:%S'
+      err=0
+   elif [ \$err -ne 0 ]; then                           # trapped error
+      echo -n "== Job exited with error(\$err) "; date '+%m/%d/%Y %H:%M:%S' 
+   else                                                 # trapped exit
+      echo -n "== Job completed "; date '+%m/%d/%Y %H:%M:%S'
+   fi
+
+   exit \$err 
+}
+trap on_exit HUP INT QUIT TERM ERR USR2 EXIT
+
+echo "== Enabling echoing of commands"; echo
+set -x
+
+# Commands
+$cmds
+
+exit 0
+QSUB_SCRIPT
+
+   # Submit the job
+   chmod a+rx "$SFILE"
+   echo "1 $SFILE" >> ${odir:-$PWD/}golem.runlist
+}
+
+
+# -- Main ----------------------------------------------------------------------
+
+
+# Check for necessary programs
+[ -x "${GOLEM}" ]      || die "Error no golem in your path"
+[ -x "${TANDEM}" ]     || die "Error no tandem in your path"
+[ -x "${TANDEM2XML}" ] || die "Error no Tandem2XML in your path"
+
+[ "${GOLEM_PASS}" ]    || die "Error GOLEM_PASS environment variable not set"
+
+search_options tandem.params '*.mzML|*.mzXML|*.mgf|*.mzML.gz|*.mzXML.gz' $*
+#rm -f golem.runlist
+submit_jobs
+
+# Submit batch job
+cd ${O_OPT:-$PWD/}
+USER="$(whoami)@systemsbiology.org"
+$GOLEM $GOLEM_SERVER -p "$GOLEM_PASS" -L "TPP tandem" -u "$USER" \
+   runlist golem.runlist | tee "golem.gjob"
+exit 0

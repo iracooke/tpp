@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Agilent2mzXML", "Agilent2mzXML.vcproj", "{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+		Test = Test
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Debug.ActiveCfg = Debug|Win32
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Debug.Build.0 = Debug|Win32
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Release.ActiveCfg = Release|Win32
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Release.Build.0 = Release|Win32
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Test.ActiveCfg = Test|Win32
+		{ECDD2E7F-DE04-4B1B-AC1C-3ED52ACEE1AA}.Test.Build.0 = Test|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

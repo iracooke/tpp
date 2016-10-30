@@ -1,0 +1,435 @@
+#!/hpc/bin/perl
+#
+# Program: TPP AWS Search Tool
+#
+# Author:  Joe Slagel
+#
+# Copyright (C) 2012 by Joseph Slagel
+# 
+# This library is free software; you can redistribute it and/or             
+# modify it under the terms of the GNU Lesser General Public                
+# License as published by the Free Software Foundation; either              
+# version 2.1 of the License, or (at your option) any later version.        
+#                                                                           
+# This library is distributed in the hope that it will be useful,           
+# but WITHOUT ANY WARRANTY; without even the implied warranty of            
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU         
+# General Public License for more details.                                  
+#                                                                           
+# You should have received a copy of the GNU Lesser General Public          
+# License along with this library; if not, write to the Free Software       
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+# Institute for Systems Biology
+# 1441 North 34th St.
+# Seattle, WA  98103  USA
+# jslagel@systemsbiology.org
+#
+# $Id: amztpp 5760 2012-03-08 00:51:25Z slagelwa $
+#
+use strict;
+use warnings;
+
+use File::Basename;
+use File::Spec;
+use Getopt::Long;
+use Pod::Usage;
+use Win32;
+use Win32::Daemon;
+use Win32::Pipe;
+use Win32::Process;
+use Win32::Service;
+
+use TPP::AWS;
+use TPP::AWS::Logger qw( $log );
+
+
+#-- @GLOBALS -----------------------------------------------------------------#
+
+our $REVISION = (q$Revision: 5760 $ =~ /(\d+)/g)[0] || '???'; 
+
+our $prog = basename($0);        # Program name
+our %opts;                       # Program invocation options
+our @argv = @ARGV;               # Preserve original ARGV
+our $cmd;                        # What to do?
+
+
+#-- @MAIN --------------------------------------------------------------------#
+
+$| = 1;					# Flush STDOUT automatically
+{
+   parseOptions();
+   printVersion() && exit 0   if ( $opts{version} );
+   pod2usage( -exitval => 2 ) if ( $opts{help} );
+   
+   if ( $opts{verbose} )
+      {
+      $log->{level} = 1;                # debug
+      $log->{fmt}   = '[%d] (%p) %m';
+      }
+   else
+      {
+      $log->{level} = 2;                # info
+      $log->{fmt}   = "$::prog: \%m";
+      }
+  
+   if ( my $logfile = $opts{log} )
+      {
+      open( LOG, ">>$logfile" ) or $log->logdie( "can't open file $logfile: $!" );
+      select( ( select(LOG), $| = 1 )[0] );
+      $log->{fmt}   = '[%d] (%p) %m';
+      open( STDOUT, ">&LOG" ); select( ( select(STDOUT), $| = 1 )[0] );
+      open( STDERR, ">&LOG" ); select( ( select(STDERR), $| = 1 )[0] );
+      $log->{handle} = \*LOG;
+      }
+   
+   installService() if ( $cmd eq 'install' );
+   runService()     if ( $cmd eq 'run' );
+   removeService()  if ( $cmd eq 'remove' );
+   
+   close( LOG ) if ( $opts{log} );
+   exit(0);   
+}
+
+
+#-- @SUBROUTINES ------------------------------------------------------------#
+
+#
+# Processes the command line arguments and initialize the global %opts
+# variable.
+#
+sub parseOptions
+   {
+   my ( $params ) = @_;
+   
+   # Get options...
+   my @flags;
+   push @flags, qw( help|h|? man version|V verbose|v);          # Program flags
+   push @flags, qw( log|l=s );
+   
+   Getopt::Long::Configure("bundling");
+   GetOptions( \%opts, @flags ) || pod2usage( -exitval => 2 );
+   $opts{log} = File::Spec->rel2abs( $opts{log} ) if ( $opts{log} );
+   
+   $cmd = shift @ARGV;
+   if ( !$cmd || $cmd !~ /^(install|run|remove)$/)
+      {
+      pod2usage( -msg => "$prog: missing or invalid command" );
+      }
+   }
+
+#
+# Output program version
+#
+sub printVersion
+   {
+   print "$prog: version $TPP::AWS::VERSION (r$::REVISION)\n";
+   }
+
+#
+# Install the service
+#
+sub installService
+   {
+   my $perl   = $^X;                            # perl executable path
+   my $path   = Win32::GetFullPathName($0);     # path to this program
+   my $params = join ' ', $path, @argv;         # command to run
+    
+   # fix command
+   $params =~ s/ install/ run/;
+   
+   # fix log file path in parameters
+   $params =~ s/-l \S+/-l $opts{log}/ if ( $opts{log} );   
+   
+   $log->debug( "creating client Win32 service");
+   $log->debug( "servicePath $perl" );
+   $log->debug( "serviceParams $params" );
+
+   my $config = {
+      machine =>  '',
+      name    =>  'AMZTPP',
+      display =>  'TPP AWS Service',
+      path    =>  $perl,
+      user    =>  '',
+      pwd     =>  '',
+      description => 'Manages files and processing of TPP files on Amazon Web Services',
+      parameters  => $params,
+      start_type  => SERVICE_AUTO_START,
+      };
+      
+    if ( Win32::Daemon::CreateService( $config ) )
+       {
+       $log->info( "client Win32 service installed" );
+       return 1;
+       }
+       
+    my $msg = Win32::FormatMessage( Win32::Daemon::GetLastError() );
+    if ( $msg =~ /completed successfully/ )
+       {
+       # On some versions of Windows you need admin privileges to add a service.
+       # The createservice() call returns false but the last message says 
+       # it was successful
+       $log->logdie( "client Win32 service not added, may need administrator privileges" );	
+       }
+    if ( $msg =~ /already exists/ )
+       {
+       $log->info( "client Win32 service already exists" );
+       
+       # Make sure service is stopped
+       my $status = {};
+       if ( Win32::Service::GetStatus( '', 'AMZTPP', $status ) )
+          {
+          return 0 if ( $status->{CurrentState} eq 0x00000001 );
+          Win32::Service::StopService( '', 'AMZTPP' ) or
+             $log->warn( "unable to stop background service $@ $!");
+          }
+      else
+          {
+          $log->warn( "unable to get status of service" );	
+          }
+       
+       return 0;
+       }
+    else
+       {
+       $log->logdie( "can't create Win32 service: $msg" );	
+       }
+    }
+
+#
+# Run the service
+#
+sub runService
+   {
+   Win32::Daemon::RegisterCallbacks( {
+      start       =>  \&Callback_Start,
+      running     =>  \&Callback_Running,
+      stop        =>  \&Callback_Stop,
+      pause       =>  \&Callback_Pause,
+      continue    =>  \&Callback_Continue,
+      } );
+
+   my %Context = (
+      last_state => SERVICE_STOPPED,
+      start_time => time(),
+      );
+      
+   Win32::Daemon::StartService( \%Context, 1000 * 5 );
+   }
+   
+#
+# Remove the service
+#
+sub removeService
+   {
+   if ( Win32::Daemon::DeleteService( Win32::NodeName(), 'AMZTPP') )
+      {
+      $log->info( "service uninstalled successfully" );
+      }
+   else
+      {
+      my $msg = Win32::FormatMessage( Win32::Daemon::GetLastError() );
+      $log->logdie( "failed to uninstall service: $msg" );
+      }  
+   }
+
+sub Callback_Start
+   {
+   my( $Event, $Context ) = @_;
+
+   $Context->{pipe} = new Win32::Pipe( 'AMZTPP Pipe' );
+   if ( !$Context->{pipe} )
+      {
+      $log->logdie( "couldn't open pipe" );
+      }
+   $log->debug( "pipe created" );
+
+   $Context->{last_state} = SERVICE_RUNNING;
+   Win32::Daemon::State( SERVICE_RUNNING );
+   }
+
+sub Callback_Pause
+   {
+   my( $Event, $Context ) = @_;
+   $log->info( "service paused" );
+   $Context->{last_state} = SERVICE_PAUSED;
+   Win32::Daemon::State( SERVICE_PAUSED );
+   }
+
+sub Callback_Continue
+   {
+   my( $Event, $Context ) = @_;
+   $log->info( "service continued" );
+   $Context->{last_state} = SERVICE_RUNNING;
+   Win32::Daemon::State( SERVICE_RUNNING );
+   }
+
+sub Callback_Stop
+   {
+   my( $Event, $Context ) = @_;
+
+   $log->info( "stop service" );
+   
+   $log->info( "sending kill to $Context->{pid}" );
+   kill( 9 => $Context->{pid} ) if ( $Context->{pid} );
+   $Context->{pipe}->Close()    if ( $Context->{pipe} );
+
+   # Stop any processes...
+   
+   # We need to notify the Daemon that we want to stop callbacks and
+   # the service.
+   $Context->{last_state} = SERVICE_STOPPED;
+   Win32::Daemon::State( SERVICE_STOPPED );
+   Win32::Daemon::StopService();
+   
+   $log->info( "service stopped" );
+   close( LOG ) if ( $opts{log} );
+   exit 0;
+   }
+   
+sub Callback_Running
+   {
+   my( $Event, $Context ) = @_;
+
+   if ( SERVICE_RUNNING != Win32::Daemon::State() )
+      {
+      $log->debug( "service isn't running yet" );
+      return();
+      }
+      
+   if ( !$Context->{pid} )    # no child process?
+      {
+      $log->debug( "forking pipe management thread" );
+      $Context->{pid} = fork();
+      }
+      
+   if ( $Context->{pid} )     # am I the parent process?
+      {
+      Win32::Daemon::CallbackTimer( 5 * 60 * 1000 );
+      $log->debug( "parent running event" );
+      return();
+      }
+
+    # I'm the child 
+    $SIG{HUP} = $SIG{TERM} = $SIG{INT} = sub { $log->debug("TERM rcvd"); exit; }; 
+
+    my $retry = 3;
+    while ( 1 )
+       {
+       $log->debug( "child($$) waiting for connection" );
+       unless ( $Context->{pipe}->Connect() )
+          {
+          $log->warn( "child($$) failed to connect " . $Context->{pipe}->Error );
+          sleep(1);
+          ( $retry-- ) ? next : last;	
+          }
+    
+       $log->debug( "child($$) client connected, reading pipe" );
+       my $params = $Context->{pipe}->Read();
+       
+       $params = '' unless defined $params;
+       my $clean = $params;
+       $clean =~ s/"--access-key" "\S+"/--"access-key" "XXXXXXXX"/;
+       $clean =~ s/"--secret-key" "\S+"/--"secret-key" "XXXXXXXX"/;
+       $log->debug( "child($$) received '$clean'" );
+       
+       if ( $params =~ /^"stop" "(\d+)"/ )
+          {
+          my $pid = $1;
+          $log->debug( "child($$) sending signal TERM to pid $pid" );
+          kill KILL => $1;
+          }
+       elsif ( $params =~ /^"start"/ )
+          {
+          $log->debug( "child($$) starting background process" );
+          
+          # Build command to run
+          my $perl = $^X; 
+          my $prog = File::Spec->catfile( dirname($0), "amztpp" );
+          $log->debug( "starting $perl $prog ..." );
+          Win32::Process::Create( my $p,  $perl, "$perl $prog $params", 
+                                  DETACHED_PROCESS, NORMAL_PRIORITY_CLASS,
+                                  "$ENV{SYSTEMDRIVE}/" ) 
+             or $log->logdie( "child($$) process failed: " . win32Msg() );
+          $log->debug( "child($$) launched process" );
+          }
+       else
+          {
+          $log->error( "child($$) received unknown command" );
+          }
+          
+       $Context->{pipe}->Disconnect();
+       $Context->{pipe} = new Win32::Pipe( 'AMZTPP Pipe' );
+       }
+       
+    $Context->{pipe}->Close();
+    $log->debug( "child($$) exiting" );
+    exit(0);                  # exit child
+    }
+   
+sub win32Msg {  Win32::FormatMessage( Win32::GetLastError() ); }
+
+
+#-- @DOCUMENTATION ----------------------------------------------------------#
+
+__END__
+
+=head1 NAME
+
+amztppservice  - Window service for using TPP on Amazon Web Services
+
+=head1 DESCRIPTION
+
+This installs/executes a Windows service for managing the background activities
+related to running the Trans Proteomic Pipeline (TPP) on Amazon Web Services.
+
+=head1 SYNOPSIS
+
+amztppservice [options] (install|run|delete)
+   
+ General Options:
+   -h, --help           display this help and exit
+   -V, --version        output version information and exit
+   -v, --verbose        enable verbose output
+   -l, --log <file>     log service output to file
+
+=head1 GENERAL OPTIONS
+
+=over 5
+
+=item B<-h, --help>
+
+Print a brief help message and exit.
+
+=item B<-V,--version>
+
+Displays the version of this program and exit.
+
+=item B<-v, --verbose>
+
+Print informational messages while running. 
+
+=item B<-l, --log FILE>
+
+Redirect output of client process to file.  Useful in combination with 
+the B<--verbose> option.  Only applies to the "start" command.
+
+=head1 COMMANDS 
+
+=item B<install>
+
+Installs the AMZTPP Window service.
+
+=item B<run>
+
+Start the service event loop.
+
+=item B<delete>
+
+Delete (remove) the AMZTPP Window service.
+
+=head1 AUTHORS
+
+Joe Slagel E<lt>jslagel@systemsbiology.orgE<gt>
+
+=cut

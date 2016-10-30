@@ -1,0 +1,157 @@
+Revision history for TPP AWS Tool.
+
+2.4.1
+
+* Fixed an issue where Win32::ShellQuote wasn't included in the
+  list of dependencies
+
+2.4
+
+* Changed the visibility timeout of service messages to 5 minutes.  Now
+  has a forked monitor process that bumps the visibility by 5 every 5
+  minutes.  This way if a spot instance (or process) dies the search
+  will go back into the pool quickly instead of waiting 12 hrs.
+
+* For all searches jobs it now invokes them with its own "system()" command
+  in order to catch shutdown signals correctly and well, shutdown, instead
+  of returning with a error.
+
+* Will cancel extra spot requests that haven't started if nothing else is
+  in the service queue
+
+* Now tracks cancelled spot requests as they don't always show up as 
+  cancelled.
+
+* Broke out some of the logic to determine when to launch more instances
+  into functions to organize it better.
+
+* Added the option ec2-util to control be able to adjust the utilization
+  thresold(ratio) of started+running EC2 instances to pending services
+
+* If an upload from the local host fails it retries and if unsuccessful 
+  logs it as an error instead of queuing it as a service and resulting in
+  download errors.
+
+* Changed the S3 retry to 5 minutes and added a retry with a "requeue" if 
+  failure persist. Will requeue up to 10 times.
+
+* Added errors to reporting.
+
+* Fixed issue with previous results not being deleted when new search
+  is started.
+
+* Uses real paths to files instead of absolute paths to remove links/".."
+  that would cause problems with file locations.
+
+* Fixed an issue with mzML/mzXML files being gzipped but not sent that way
+  due to file checksums
+
+* Files are sorted by descending size before uploading searches.
+
+* Updated/added more tests.
+
+2.3
+
+* Uses a "done" queue now to track finished service requests.  The new 
+  report command can output a text/xml formatted report of what is in
+  this queue.
+
+* For stability/easier use dropped the idea of using a Windows service to
+run the background process.  What this means is if the user logs out the
+background process will be killed.  This isn't a problem in Petunia as Apache
+is running the background process.
+
+* Now uses a monitor process when running services to bump the visibility
+  timeout by 5 minutes every 5 minutes.  This way we don't have to wait
+  12 hours if a job fails unexpectly (such as when spot instance is 
+  killed off by Amazon).
+
+* Includes the user id in the PID and writes it to a common location. This
+is in case users are sharing credentials as we only want to start up one
+background process at a time and report status only once.
+
+* Changed max to --ec2-max to be more uniform
+
+* Retention time of all queues now set to the maximum 14 days.
+
+* Changed retry mechanism on file uploads/download errors to do a expotential
+  backoff of ~15 minutes of retries
+
+* The resulting pep.xml file is now named after the search program used,
+  e.g. tandem writes tandem.pep.xml and myrimatch writes myrimatch.pep.xml
+
+* Fixed an issue were executing a status immediately after a realclean would
+  throw an exception.  Turns out even after deleting a queue it still can
+  get listed but you can't get its attributes.
+
+2.2
+
+* Both the amzttpd log and the service log (whatever service is being run on
+  a instance) are now available via the web using the url 
+
+     http://<EC2 pubic dns name>/amztppd.log
+     http://<EC2 pubic dns name>/amztppd-service.log
+
+* Added outputting the hostname and instance id in the amztppd log
+
+* Now outputs a human readable status for the amztpp Window service
+
+* Fixed an issue with invalid xml in xml formatted status 
+
+* Its possible that the user invoking amztpp doesn't have admin privleges
+  to start services so the amztpp service on Windows is now installed with a
+  start type of auto.
+
+* Now stores the AWS instance id in messages and reports the id instead of
+  the ip address (for uniqueness) in the final report
+
+* Fixed an issue where the Windows service was not being sent the proper
+  startup command
+
+* If no output folder is specified amztpp will output the results besides
+  the input files
+
+2.1 
+
+* Now automatically starts background process.  Can be overridden with new
+  --nostart option
+* Added spot instance support (EXPERIMENTAL)
+* Added AWS_CREDENTIAL_FILE variable for pointing to credentials file
+* Checks the Win32 service directory to see if its running
+* Added "check" command to check credentials
+* Installs scripts in TPP area if TPP is installed
+* Outputs status of win32 service on Windows platforms
+* Added "--xml" option to status command for XML formatted output
+* Cleaned up POD
+* Fixed dependency issue on Win32
+* Fixed an issue in updating file paths when the source file contained
+  regex expressions (such as a '\')
+* Fixed an issue in the Tandem test script where the path to the
+  fasta file was getting overwritten in the taxonomy file.
+* Fixed an issue with ec2-group option being ignored
+* Corrected an warning message in the Win32Client test
+
+2.0.2
+
+* Set default max number of EC2 instances to 1
+* After uploading a file check that its there and checksum matches. 
+  Net::Amazon::S3 seems to silently fail
+* Determine when to start another EC2 node based on the difference of
+  the previous # of pending jobs and the current # (more than one behind)
+
+2.0.1 
+
+* close the correct filehandles in myrimatch service
+* broke out uploading and downloading threads into separate
+  entities to make the maxprocs more accurate
+* added PID to logger format
+* added checksum printing when error in file downloads
+* S3 default bucket name is now all lowercase
+* fixed parameter issue in inspect service
+* logs pid automatically in parallel forks
+* wrapped message handling with retrys
+* nodes now shutdown just minutes before the hour
+* updated the aws script
+
+0.01  Original Version
+

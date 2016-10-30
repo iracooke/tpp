@@ -1,0 +1,135 @@
+#!/bin/csh
+
+#
+# get UniProt databases  ----------
+#
+ftp -n <<DONE_WITH_FTP
+open ftp.uniprot.org
+user anonymous email@yourdomain.com
+bin
+prompt
+
+get /pub/databases/uniprot/current_release/knowledgebase/complete/reldate.txt uniprot_sprot.readme
+get /pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz uniprot_sprot.fasta.gz
+get /pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz uniprot_trembl.fasta.gz
+DONE_WITH_FTP
+
+#
+# uncompress downloaded file  ----------
+#
+rm -f uniprot_sprot.fasta
+gunzip uniprot_sprot.fasta.gz
+
+rm -f uniprot_trembl.fasta
+gunzip uniprot_trembl.fasta.gz
+
+#
+# add escaping of special chars ', ", & and substitute '<' to '[' and '>' to ']' in def lines
+# warning, substitution is expensive aka slow; comment out next four commands
+# if you can't afford the time and deal with the special chars yourself
+#
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(..\)|\(.*\)|\(.*\)/>\2 \1|\2|\3/' < uniprot_sprot.fasta > uniprot_sprot.fasta.tmp
+mv -f uniprot_sprot.fasta.tmp uniprot_sprot.fasta
+
+sed -e '/^>/s/&/\&amp;/g' \
+    -e "/^>/s/'/\&apos;/g" \
+    -e '/^>/s/"/\&quot;/g' \
+    -e '/^>/s/</[/g' \
+    -e '/^>/s/>/]/g' \
+    -e 's/^]\(..\)|\(.*\)|\(.*\)/>\2 \1|\2|\3/' < uniprot_trembl.fasta > uniprot_trembl.fasta.tmp
+mv -f uniprot_trembl.fasta.tmp uniprot_trembl.fasta
+
+
+#
+# append date to filenames  ----------
+#
+set currdate=`date +%Y%m%d`
+
+rm -f uniprot_sprot.fasta.$currdate uniprot_sprot.readme.$currdate
+mv uniprot_sprot.fasta uniprot_sprot.fasta.$currdate
+
+rm -f uniprot_trembl.fasta.$currdate uniprot_trembl.readme.$currdate
+mv uniprot_trembl.fasta uniprot_trembl.fasta.$currdate
+
+mv uniprot_sprot.readme uniprot_sprot.readme.$currdate
+
+#
+# create subset databases for both Swiss-Prot and TrEMBL
+# human, pombe yeast, worm, fly, rat, mouse, ecoli, and baker's yeast
+#
+subsetdb -MOS=Homo^sapiens -Nneanderthalensis -Ouniprot.sp.human.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Schizosaccharomyces^pombe       -Ouniprot.sp.pombe.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Caenorhabditis^elegans          -Ouniprot.sp.worm.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Drosophila^melanogaster         -Ouniprot.sp.fly.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Rattus^norvegicus               -Ouniprot.sp.rat.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Mus^musculus^GN= -MOS=Mus^musculus^PE=                -Ouniprot.sp.mouse.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Escherichia^coli^GN= -MOS=Escherichia^coli^PE=        -Ouniprot.sp.ecoli.$currdate uniprot_sprot.fasta.$currdate
+subsetdb -MOS=Saccharomyces^cerevisiae -NOS=Saccharomyces^cerevisiae^\(strain      -Ouniprot.sp.yeast.$currdate uniprot_sprot.fasta.$currdate
+
+subsetdb -MOS=Homo^sapiens -Nneanderthalensis -Ouniprot.tr.human.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Schizosaccharomyces^pombe       -Ouniprot.tr.pombe.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Caenorhabditis^elegans          -Ouniprot.tr.worm.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Drosophila^melanogaster         -Ouniprot.tr.fly.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Rattus^norvegicus               -Ouniprot.tr.rat.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Mus^musculus^GN= -MOS=Mus^musculus^PE=                -Ouniprot.tr.mouse.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Escherichia^coli^GN= -MOS=Escherichia^coli^PE=        -Ouniprot.tr.ecoli.$currdate uniprot_trembl.fasta.$currdate
+subsetdb -MOS=Saccharomyces^cerevisiae -NOS=Saccharomyces^cerevisiae^\(strain      -Ouniprot.tr.yeast.$currdate uniprot_trembl.fasta.$currdate
+
+#
+# also make a combined sprot + trembl version of each of the above and call them uniprot.sptr.*  ----------
+#
+cat uniprot.sp.human.$currdate uniprot.tr.human.$currdate > uniprot.sptr.human.$currdate
+cat uniprot.sp.pombe.$currdate uniprot.tr.pombe.$currdate > uniprot.sptr.pombe.$currdate
+cat uniprot.sp.worm.$currdate  uniprot.tr.worm.$currdate  > uniprot.sptr.worm.$currdate
+cat uniprot.sp.fly.$currdate   uniprot.tr.fly.$currdate   > uniprot.sptr.fly.$currdate
+cat uniprot.sp.rat.$currdate   uniprot.tr.rat.$currdate   > uniprot.sptr.rat.$currdate
+cat uniprot.sp.mouse.$currdate uniprot.tr.mouse.$currdate > uniprot.sptr.mouse.$currdate
+cat uniprot.sp.ecoli.$currdate uniprot.tr.ecoli.$currdate > uniprot.sptr.ecoli.$currdate
+cat uniprot.sp.yeast.$currdate uniprot.tr.yeast.$currdate > uniprot.sptr.yeast.$currdate
+
+
+#
+# append common contaminants to databases  ----------
+# entries from www.thegpm.org/crap/ with sequence updated from UniProt 2010_05
+#
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.other contam.yeast >> uniprot.sp.human.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.other contam.yeast >> uniprot.sptr.human.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> uniprot.sp.pombe.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> uniprot.sptr.pombe.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sp.worm.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sptr.worm.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sp.fly.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sptr.fly.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sp.rat.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sptr.rat.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sp.mouse.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other contam.yeast >> uniprot.sptr.mouse.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.human contam.other contam.yeast >> uniprot.sp.ecoli.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.human contam.other contam.yeast >> uniprot.sptr.ecoli.$currdate
+
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> uniprot.sp.yeast.$currdate
+tar xzOf uniprot.contam.tgz contam.bovin contam.ecoli contam.human contam.other >> uniprot.sptr.yeast.$currdate
+
+#
+# get rid of just the trembl subset
+#
+rm -f uniprot.tr.human.$currdate
+rm -f uniprot.tr.pombe.$currdate
+rm -f uniprot.tr.worm.$currdate 
+rm -f uniprot.tr.fly.$currdate
+rm -f uniprot.tr.rat.$currdate
+rm -f uniprot.tr.mouse.$currdate
+rm -f uniprot.tr.ecoli.$currdate
+rm -f uniprot.tr.yeast.$currdate
+

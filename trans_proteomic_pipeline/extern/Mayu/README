@@ -1,0 +1,13 @@
+This directory contains Mayu v1.06 as downloaded from
+http://prottools.ethz.ch/muellelu/web/LukasReiter/Mayu/,
+with the exception of Mayu.pl, which has been altered by
+Lukas Reiter to make it work better with SpectraST decoys.
+
+This directory additionally contains a wrapper script,
+MayuPepXML.csh.
+
+More info at http://tools.proteomecenter.org/wiki/index.php?title=Software:Mayu
+
+Terry Farrah
+Institute for Systems Biology
+July 18, 2009

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="tpp"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(SolutionDir)&quot;;&quot;$(SolutionDir)\common&quot;;&quot;$(SolutionDir)..\extern\boost_1_45_0&quot;;&quot;$(SolutionDir)../extern/ProteoWizard/pwiz&quot;;&quot;$(SolutionDir)../extern/gzstream&quot;;&quot;$(SolutionDir)..\extern\zlib-1.2.5&quot;;&quot;$(SolutionDir)..\extern\common_win32&quot;;&quot;$(SolutionDir)Parsers\ramp&quot;;&quot;$(SolutionDir)..\extern\libw32c\include&quot;;&quot;$(SolutionDir)../extern/expat-2.0.1/lib&quot;;&quot;$(SolutionDir)..\extern\gdwin32&quot;;&quot;$(SolutionDir)../extern/ProteoWizard/pwiz/libraries/boost_aux&quot;;&quot;$(SolutionDir)../extern/ProteoWizard/pwiz/pwiz/data/msdata&quot;;&quot;$(SolutionDir)../extern/fann-2.0.0/src/include&quot;;&quot;$(SolutionDir)../build/msvc/gsl-1.14/msvc&quot;;&quot;$(SolutionDir)../build/msvc/gsl-1.14&quot;;&quot;$(SolutionDir)../extern/openmpi/ompi/include&quot;;&quot;$(SolutionDir)../extern&quot;;&quot;$(SolutionDir)../extern/ProteoWizard/pwiz/libraries/libsvm-3.0&quot;"
+		PreprocessorDefinitions="FANN_NO_DLL;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0"
+		WarnAsError="true"
+		DisableSpecificWarnings="4996;4503"
+	/>
+	<Tool
+		Name="VCLibrarianTool"
+		AdditionalDependencies="&quot;$(SolutionDir)/$(ConfigurationName)/zlib.lib&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalLibraryDirectories="&quot;$(SolutionDir)$(ConfigurationName)&quot;;&quot;$(SolutionDir)..\extern\boost_1_45_0\stage\lib&quot;"
+		LinkTimeCodeGeneration="0"
+	/>
+</VisualStudioPropertySheet>

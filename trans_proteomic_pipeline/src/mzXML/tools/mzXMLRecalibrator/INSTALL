@@ -1,0 +1,13 @@
+mzXMLRecalibrator
+
+Version 0.7 compiles and loads successfully under Linux and Cygwin.
+
+To build it type
+
+    make
+
+within the mzXMLRecalibrator directory.  
+
+Dependencies:
+
+    libxml2  (ftp://ftp.gnome.org/mirror/gnome.org/sources/libxml2/2.6/libxml2-2.6.17.tar.gz)

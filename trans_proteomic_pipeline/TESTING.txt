@@ -1,0 +1,82 @@
+Trans-Proteomic Pipeline (TPP) Regression Testing         Brian Pratt   Insilicos LLC              11.16.05               
+
+This document is intended mostly for TPP developers, but may be of interest to advanced users.
+
+REGRESSION TESTING - WHAT AND WHY
+
+Support for regression testing is built into the major components of TPP, and the xinteract wrapper that 
+calls them.  "Regression Testing" means that we check for stability, not correctness, in the program
+outputs.  The working assumption is that the software already functions correctly, so we just want to make
+sure it continues to operate the same way.  That is not to say that we believe the TPP is bug free, but
+having a tool in place to catch unintended side effects of code changes is big leverage.
+
+CREATE A REGRESSION TEST BASIS
+
+Running a regression test requires a basis against which you can compare your current results.  Producing a
+regression test basis is easy: just add a "-t!" to the xinteract command line.  This will be passed along to
+each of the major TPP components (except those implemented in Perl), causing each component to produce a file
+containing only the pepXML tags the component is responsible for generating.  The file is named as
+	<input pepXML filename>.<component name>.<xinteract arguments>.tagList
+
+If you want to specify a test name such that the tagList files are named
+	<input pepXML filename>.<component name>.<mytestname>.tagList
+just specify it by using -t!<mytestname> on the xinteract command line.
+
+	
+RUN A REGRESSION TEST
+	
+Running a regression test is similarly easy: just add a "-t" (no "!") to the xinteract command line.  This will 
+be passed along to each of the major TPP components (except those implemented in Perl), causing each component 
+to compare the tags it is responsible for generating to the contents of the previously generated basis file.  Use
+-t<mytestname> if you explicitly named the test when creating it.
+
+In the event of a regression test failure, the failed component issues a warning and exits with an error.
+
+
+FORCE CONTINUED EXECUTION ON TEST FAILURE
+
+You can force a program to continue running even if it has a failure by using "-t#".
+
+
+AN EXAMPLE:
+
+Learn a regression test:
+
+   xinteract -t! raft0020.html -Oip -A
+
+run that regression test:
+
+   xinteract -t raft0020.html -Oip -A
+
+run that regression test, stumbling forward even if something fails:
+
+   xinteract -t# raft0020.html -Oip -A
+
+
+It's that simple.  The trick is that the regression test basis filename is a function of the arguments to 
+xinteract.  What actually happens is that a set of regression test basis files are generated, one each by 
+the C++ apps xinteract invokes:
+	interact-prot.xml.ASAPRatioProteinRatioParser.raft0020.html_-Oip_-A.tagList
+	interact-prot.xml.ASAPRatioPvalueParser.raft0020.html_-Oip_-A.tagList
+	interact.xml.ASAPRatioPeptideParser.raft0020.html_-Oip_-A.tagList
+	interact.xml.RefreshParser.raft0020.html_-Oip_-A.tagList
+	interact.xml.interactParser.raft0020.html_-Oip_-A.tagList
+	interact.xml.peptideProphet.raft0020.html_-Oip_-A.tagList
+These files are generated when the -t! option is used, and tested against when the -t option is used.  
+Differences in timestamps, program version numbers etc are ignored.  It is likely that more intelligent 
+comparisons will need to be added as the code evolves, but this is easy to do since the comparison code is 
+built into the apps themselves, which is also where the interpretive power resides.
+
+
+
+IMPLEMENTATION DETAILS FOR DEVELOPERS
+
+The files to look at are sashimi/trans_proteomic_pipeline/src/Parsers/Parser/TagListComparator.cxx and .h, 
+and files such as LibraPeptideParser.cxx that use them.
+
+The TagListComparator class is intended to be subclassed so that specific intelligence can be brought to bear 
+on differences that may reveal them to be bytewise different but semantically identical or at least acceptable.
+The default implementation ignores differences in time and date stamps, version numbers etc, so your subclassed
+implementation should begin by calling the parent class version.
+
+
