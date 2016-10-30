@@ -45,7 +45,7 @@ install:
 	cp -f tpp_gui/*.gif ${CGI_DIR}/images
 	cp -f ../installer_win32/*.ico ${CGI_DIR}/images
 	mkdir -p ${CGI_USERS_DIR}
-	cp -rfu tpp_gui/users/* ${CGI_USERS_DIR}
+	cp -rf tpp_gui/users/* ${CGI_USERS_DIR}
 	mkdir -p ${HTML_DIR}js
 	chmod a+x ${HTML_DIR}js
 	cp -f tpp_gui/js/*.js ${HTML_DIR}js

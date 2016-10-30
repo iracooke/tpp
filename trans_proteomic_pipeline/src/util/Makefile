@@ -12,7 +12,7 @@ RAMPINC= -I . -I ${RAMPROOT} -I ../common -I ..
 EXE=$(OBJ_ARCH)/checkdb $(OBJ_ARCH)/digestdb $(OBJ_ARCH)/mzxml2dta $(OBJ_ARCH)/plottic $(OBJ_ARCH)/subsetdb  $(OBJ_ARCH)/prophet_png $(OBJ_ARCH)/getSpectrum $(OBJ_ARCH)/seeker $(OBJ_ARCH)/pep_dbcount $(OBJ_ARCH)/fdr_plot $(OBJ_ARCH)/translateDNA2AA-FASTA $(OBJ_ARCH)/calculate_pi $(OBJ_ARCH)/add_mz
 
 # handle 2GB+ files
-CCOPT= -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Werror -Wformat -Wstrict-aliasing  -Wno-deprecated -Wno-char-subscripts
+CCOPT= -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wformat -Wstrict-aliasing  -Wno-deprecated -Wno-char-subscripts
 
 
 # put here the name of c compiler

@@ -32,7 +32,7 @@ MZPARSER=${OBJ_ARCH}/libmzparser.a
 
 # other flags
 MZPFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DGCC
-WARNINGFLAGS = -Werror -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
+WARNINGFLAGS = -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
 IFLAGS=  -I$(SRC_ROOT) -I$(EXPAT_INCL) -I$(HDF5_INCL)
 
 CXX=g++

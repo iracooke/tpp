@@ -109,7 +109,7 @@ ifneq  ($(strip $(GNUPLOT_BINARY)),)
 NAIVE_CC += -DGNUPLOT_BINARY=\"${GNUPLOT_BINARY}\"
 endif
 
-CC=${NAIVE_CC} -Werror -Dlint -Wformat -Wstrict-aliasing  -Wno-deprecated -Wno-char-subscripts
+CC=${NAIVE_CC} -Dlint -Wformat -Wstrict-aliasing  -Wno-deprecated -Wno-char-subscripts
 
 
 # put here the complete directory path for the include subdirectory

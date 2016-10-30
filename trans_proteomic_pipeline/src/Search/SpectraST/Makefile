@@ -39,7 +39,7 @@ LFSFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__MINGW__ -DGNUPLOT_BINAR
 else
 LFSFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DGCC -DGNUPLOT_BINARY=\"${GNUPLOT_BINARY}\"
 endif
-WARNINGFLAGS = -Werror -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
+WARNINGFLAGS = -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
 #IFLAGS=  -I$(SRC_ROOT)/common  -I$(SRC_ROOT)/Parsers/ramp -I$(SRC_ROOT)/refresh_interact -I$(SRC_ROOT)../extern/pwiz $(BOOST_INCL)
 IFLAGS=  -I$(SRC_ROOT) -I$(SRC_ROOT). -I$(TPP_MSDATA_READER_INCL) $(TPP_MSDATA_READER_SUPPORT_INCL) -I$(GSL_INCLDIR) -I$(HDF5_INCL) -I$(EXPAT_INCL) $(ZLIB_INCL)
 

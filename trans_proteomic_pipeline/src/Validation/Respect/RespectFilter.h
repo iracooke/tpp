@@ -59,9 +59,13 @@ Seattle, WA  98109  USA
 #include <pwiz/utility/misc/Std.hpp>
 #include <pwiz/data/msdata/Serializer_mzML.hpp>
 
+
 using namespace std;
 using namespace pwiz::data;
 using namespace pwiz::msdata;
+#include <boost/shared_ptr.hpp>
+using boost::shared_ptr;
+// using boost::shared_ptr
 
 typedef TPP_STDSTRING_HASHMAP(string*) strp_hash;
 typedef TPP_STDSTRING_HASHMAP(SpectrumPtr) spectptr_hash;
@@ -154,7 +158,7 @@ class RespectFilter {
   //vector<MZIntensityPair*> all_peaks_;
   pwiz::msdata::MSDataFile* inmsd_;
   pwiz::msdata::MSDataFile* outmsd_;
-  shared_ptr<SpectrumListSimple> spectrumList;// (new SpectrumListSimple);
+  boost::shared_ptr<SpectrumListSimple> spectrumList;// (new SpectrumListSimple);
 
   //FullReaderList readers_;
   //const ReaderList::Config readerConfig_;

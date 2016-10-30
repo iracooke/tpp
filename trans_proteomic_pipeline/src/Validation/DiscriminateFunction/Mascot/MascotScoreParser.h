@@ -1,5 +1,5 @@
 #ifndef MASCOT_SCORE_PARSER_H
-#define MASCOT_SCORE_UPDATE_PARSER_H
+#define MASCOT_SCORE_PARSER_H
 /*
 
 Program       : MascotScoreParser                                                      

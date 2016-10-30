@@ -31,7 +31,7 @@ EXE=${ARCH}/spectrast ${ARCH}/plotspectrast ${ARCH}/plotspectrast.cgi ${ARCH}/Li
 
 # lfs support
 LFSFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
-WARNINGFLAGS = -Werror -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
+WARNINGFLAGS = -Wformat -Wstrict-aliasing -Wno-deprecated -Wno-char-subscripts
 IFLAGS= -I/usr/include
 
 ifeq (${LGPL},1)

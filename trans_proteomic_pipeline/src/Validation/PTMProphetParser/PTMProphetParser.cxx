@@ -2176,7 +2176,7 @@ void PTMProphetParser::writeUpdatedModTags(PTMProphet* proph, ofstream& fout, st
 
       new_mpep += tok;
     }
-    else if (pos >= 0 && (prob = proph->getProbAtPosition(pos)) < 0 || pos_rank_hash[pos] < mod_sites) {
+    else if ((pos >= 0 && (prob = proph->getProbAtPosition(pos)) < 0) || pos_rank_hash[pos] < mod_sites) {
       new_mpep += tok;
       if (prob >= 0 && tok.length() == 1) {
 
