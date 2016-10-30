@@ -17,6 +17,13 @@ PWIZ_INCL = -iprefix $(PWIZ_SRC)/ -iwithprefix pwiz/data/msdata \
 PWIZ_OBJ_ARCH = $(OBJ_ARCH)/pwiz
 PWIZ_LIB      = $(OBJ_ARCH)/libpwiz.a
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	LIB_BUILDER = ar -r
+endif
+ifeq ($(UNAME_S),Darwin)
+	LIB_BUILDER = libtool -o
+endif
 
 #
 # Top level
@@ -221,8 +228,7 @@ $(PWIZ_OBJ_ARCH)/%.o: %.cxx
 # Build a single monolithic static library
 #
 $(PWIZ_LIB): $(BOOST_LIBS) $(OBJS_PWIZ) 
-	ar -r $@ $^
-
+	$(LIB_BUILDER) $@ $^
 
 #
 # Build msconvert (uses secondary expansion to update the prerequistes due to
