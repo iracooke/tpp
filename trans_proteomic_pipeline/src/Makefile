@@ -1844,7 +1844,7 @@ install-linux-xml:
 	#sed -i 's?_DEFAULT_INPUT_LOCATION_/?${BIN_DIR}?g' ${BIN_DIR}tandem_params.xml
 
 	# copying comet executable 
-	cp -f $(OBJ_ARCH)/comet ${BIN_DIR}
+	# cp -f $(OBJ_ARCH)/comet ${BIN_DIR}
 
 	cp -f ../schema/msms_analysis3.dtd ${SCHEMA_DIR}
 	cp -f ../schema/pepXML_std.xsl ${SCHEMA_DIR}
