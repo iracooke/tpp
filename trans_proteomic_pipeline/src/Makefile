@@ -1815,7 +1815,7 @@ install-linux-xml:
 	cp -f $(OBJ_ARCH)/dta2mzxml ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/msconvert ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/idconvert ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/comet ${BIN_DIR}
+#	cp -f $(OBJ_ARCH)/comet ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/out2summary ${BIN_DIR} # to be retired in favor of out2xml
 	cp -f $(OBJ_ARCH)/pep_dbcount ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/digestdb ${BIN_DIR}
