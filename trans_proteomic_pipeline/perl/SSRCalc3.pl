@@ -524,7 +524,7 @@ sub ReadParmFile3 {
   my $pSet = "";
   my $cnt01=0 , $cnt02=0 , $cnt03=0, $cnt04=0 ;
 
-  my $infile = "SSRCalc3.par";
+  my $infile = "../params/SSRCalc3.par";
 
   if ($ENV{SSRCalc}) {
       $infile = "$ENV{SSRCalc}/$infile";

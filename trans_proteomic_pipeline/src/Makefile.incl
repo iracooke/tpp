@@ -55,6 +55,7 @@ ETC_DIR=${TPP_ROOT}etc/
 HELP_DIR=${TPP_ROOT}html/
 HTML_DIR=${TPP_ROOT}html/
 SCHEMA_DIR=${TPP_ROOT}schema/
+PARAMS_DIR=${TPP_ROOT}params/
 
 ifeq ($(strip $(CGI_USERS_DIR)),)
 # don't edit here, create Makefile.config.incl instead  

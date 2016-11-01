@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
   
   if (!train && !ann) {
     if (coeffile.empty()) {
-      coeffile = DEFAULT_LOCAL_BIN + (string)"RTCalc.coeff";
+      coeffile = DEFAULT_LOCAL_PARAMS + (string)"RTCalc.coeff";
     }
     ifstream fin(coeffile.c_str());
     if(! fin) {

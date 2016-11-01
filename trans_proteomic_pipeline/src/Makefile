@@ -1769,7 +1769,7 @@ install-linux-xml:
 	cp -f ../extern/d3/*.js ${HTML_DIR}/js
 	cp -rf ../HTML/ProteoGrapher ${HTML_DIR}
 
-	cp -f $(OBJ_ARCH)/StatUtilities.pm ${BIN_DIR}
+#	cp -f $(OBJ_ARCH)/StatUtilities.pm ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/calctppstat.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/StatUtilities.pm ${CGI_DIR}
 	cp -f $(OBJ_ARCH)/calctppstat.pl ${CGI_DIR}
@@ -1777,9 +1777,9 @@ install-linux-xml:
 	cp -f $(OBJ_ARCH)/tpp_hostname ${CGI_DIR}
 	cp -f $(OBJ_ARCH)/SSRCalc3.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/RTCalc ${BIN_DIR}	
-	cp -f $(OBJ_ARCH)/RTCalc.coeff ${BIN_DIR}	
+	cp -f $(OBJ_ARCH)/RTCalc.coeff ${PARAMS_DIR}	
 	# SSRCalc3.par doesn't need to be rewriten and is in the src tree, not build stage dir
-	cp -f ../perl/SSRCalc3.par ${BIN_DIR}
+	cp -f ../perl/SSRCalc3.par ${PARAMS_DIR}
 	cp -f $(OBJ_ARCH)/run_marimba.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/filterMRM.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/min_sort.pl ${BIN_DIR}
@@ -1792,7 +1792,7 @@ install-linux-xml:
 	cp -f $(OBJ_ARCH)/compareProts_ClusterHM.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/get_prots.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/ProtProphModels.pl ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/tpp_models.pl ${BIN_DIR}
+#	cp -f $(OBJ_ARCH)/tpp_models.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/RefreshParser ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/MzXML2Search ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/runperl ${BIN_DIR}
@@ -1825,8 +1825,8 @@ install-linux-xml:
 	cp -f $(OBJ_ARCH)/add_mz ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/decoyFASTA ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/tpplib_perl.pm ${CGI_DIR}
-	cp -f $(OBJ_ARCH)/tpplib_perl.pm ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/exporTPP.pl ${BIN_DIR}
+#	cp -f $(OBJ_ARCH)/tpplib_perl.pm ${BIN_DIR}
+#	cp -f $(OBJ_ARCH)/exporTPP.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/createChargeFile.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/mergeCharges.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/fileDownloader.pl ${BIN_DIR}
@@ -1835,10 +1835,10 @@ install-linux-xml:
 
 	# copying tandem executable and support files to installed bin directory
 	cp -f $(OBJ_ARCH)/tandem ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/isb_default_input_kscore.xml ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/isb_default_input_native.xml ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/tandem_params.xml ${BIN_DIR}
-	cp -f $(OBJ_ARCH)/taxonomy.xml ${BIN_DIR}
+	cp -f $(OBJ_ARCH)/isb_default_input_kscore.xml ${PARAMS_DIR}
+	cp -f $(OBJ_ARCH)/isb_default_input_native.xml ${PARAMS_DIR}
+	cp -f $(OBJ_ARCH)/tandem_params.xml ${PARAMS_DIR}
+	cp -f $(OBJ_ARCH)/taxonomy.xml ${PARAMS_DIR}
 
 	# replace the default_input.xml path in Tandem's params file
 	#sed -i 's?_DEFAULT_INPUT_LOCATION_/?${BIN_DIR}?g' ${BIN_DIR}tandem_params.xml
