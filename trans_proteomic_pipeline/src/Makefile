@@ -1792,7 +1792,7 @@ install-linux-xml:
 	cp -f $(OBJ_ARCH)/compareProts_ClusterHM.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/get_prots.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/ProtProphModels.pl ${BIN_DIR}
-#	cp -f $(OBJ_ARCH)/tpp_models.pl ${BIN_DIR}
+	cp -f $(OBJ_ARCH)/tpp_models.pl ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/RefreshParser ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/MzXML2Search ${BIN_DIR}
 	cp -f $(OBJ_ARCH)/runperl ${BIN_DIR}
