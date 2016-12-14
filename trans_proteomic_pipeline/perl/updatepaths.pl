@@ -56,6 +56,8 @@ use Pod::Usage;
 use XML::Parser;
 
 use lib rel2abs(dirname($0));
+use FindBin;
+use lib "$FindBin::Bin/../cgi-bin";
 use tpplib_perl;
 
 

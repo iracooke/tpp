@@ -10,6 +10,8 @@ $\ = "\n";
 use File::Basename;
 use Cwd qw(realpath cwd);
 use lib realpath(dirname($0));
+use FindBin;
+use lib "$FindBin::Bin/../cgi-bin";
 use tpplib_perl; # exported TPP lib function points
 my $WIN = 500 ;
 
