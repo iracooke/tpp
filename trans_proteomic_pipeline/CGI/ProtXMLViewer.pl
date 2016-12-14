@@ -29,7 +29,7 @@
 # Seattle, WA  98109  USA                                                   #
 #                                                                           #
 #############################################################################
-use strict;
+#use strict;
 # use Getopt::Long;
 use XML::Parser;
 # use File::Copy;
