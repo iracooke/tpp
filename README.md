@@ -4,3 +4,12 @@ This repository mirrors the source code distribution of the Trans Proteomic Pipe
 
 Please visit [http://tools.proteomecenter.org/wiki/index.php?title=Software:TPP](http://tools.proteomecenter.org/wiki/index.php?title=Software:TPP) for the official TPP distribution.
 
+# Standalone build
+
+To make a standalone build to be installed in `/usr/local/tpp`
+
+```bash
+	cd trans_proteomic_pipeline/src
+	prefix="usr/local/tpp"
+	printf 'TPP_ROOT=/%s\nTPP_WEB=/%s/web\nCGI_USERS_DIR=/%s/cgi-bin/\n' "$prefix" "$prefix" "$prefix" > Makefile.config.incl
+```
